@@ -1,13 +1,23 @@
-import type { NextPage } from 'next';
+import type { NextPage, GetServerSideProps } from 'next';
 
-import { trpc } from '../utils/trpc';
+import getSession from '../utils/getSession';
 
 const Home: NextPage = () => {
-  const { data } = trpc.useQuery(['hello', 'world']);
+  return <div></div>;
+};
 
-  if (!data) return <div>Loading...</div>;
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const session = await getSession(ctx);
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/auth',
+      },
+      props: {},
+    };
+  }
 
-  return <div>{data}</div>;
+  return { props: { session } };
 };
 
 export default Home;

@@ -1,10 +1,10 @@
-import NextAuth from 'next-auth';
+import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 
 import { prisma } from '../../../server/prisma';
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       credentials: {
@@ -45,4 +45,9 @@ export default NextAuth({
   jwt: {
     maxAge: 60 * 60,
   },
-});
+  pages: {
+    signIn: '/auth',
+  },
+};
+
+export default NextAuth(authOptions);
