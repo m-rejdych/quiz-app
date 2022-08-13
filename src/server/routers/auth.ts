@@ -17,10 +17,10 @@ const authRouter = trpc.router().mutation('register', {
 
     const user = await prisma.user.create({
       data: { ...rest, password: hashedPassword },
-      select: { email: true },
+      select: { email: true, id: true },
     });
 
-    return { email: user.email, password };
+    return { email: user.email, id: user.id };
   },
 });
 

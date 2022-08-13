@@ -9,16 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chakra-ui/react": "^2.2.6",
+    "@emotion/react": "^11.10.0",
+    "@emotion/styled": "^11.10.0",
     "@prisma/client": "^4.1.1",
     "@trpc/client": "^9.26.2",
     "@trpc/next": "^9.26.2",
     "@trpc/react": "^9.26.2",
     "@trpc/server": "^9.26.2",
     "bcryptjs": "^2.4.3",
+    "framer-motion": "^7.0.0",
     "next": "12.2.4",
     "next-auth": "^4.10.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hook-form": "^7.34.0",
     "react-query": "^3.39.2",
     "zod": "^3.17.10"
   },
