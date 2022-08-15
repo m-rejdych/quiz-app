@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app';
+import superjson from 'superjson';
 import { withTRPC } from '@trpc/next';
 import { ChakraProvider, cookieStorageManager } from '@chakra-ui/react';
 
@@ -16,7 +17,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 export default withTRPC<AppRouter>({
   config: () => {
     return {
-      url: `${process.env.URL as string}/api/trpc`,
+      url: '/api/trpc',
     };
   },
   ssr: true,
