@@ -1,32 +1,16 @@
 import { type HTMLInputTypeAttribute, useState } from 'react';
 import type { NextPage } from 'next';
+import type { SubmitHandler, RegisterOptions } from 'react-hook-form';
 import { useRouter } from 'next/router';
 import { signIn } from 'next-auth/react';
-import {
-  useForm,
-  type RegisterOptions,
-  type SubmitHandler,
-} from 'react-hook-form';
-import {
-  Input,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  Button,
-  VStack,
-  Box,
-  Center,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  CloseButton,
-  Fade,
-} from '@chakra-ui/react';
+
+import AuthLayout from '../../components/auth/layout';
+import AuthForm from '../../components/auth/form';
 
 interface Field<T extends string> {
+  name: T;
   type: HTMLInputTypeAttribute;
   label: string;
-  name: T;
   registerOptions: RegisterOptions;
 }
 
@@ -71,11 +55,6 @@ const FIELDS: Field<keyof FieldNames>[] = [
 
 const Login: NextPage = () => {
   const [isServerError, setIsServerError] = useState(false);
-  const {
-    register,
-    formState: { errors, isSubmitting },
-    handleSubmit,
-  } = useForm<FieldNames>();
   const router = useRouter();
 
   const onSubmit: SubmitHandler<FieldNames> = async (fields) => {
@@ -93,54 +72,12 @@ const Login: NextPage = () => {
   };
 
   return (
-    <>
-      <Center height="100vh">
-        <Box
-          bgColor="blackAlpha.400"
-          borderRadius="md"
-          p={6}
-          w={500}
-          maxW="90vw"
-          boxShadow="lg"
-        >
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <VStack spacing={6}>
-              {FIELDS.map(({ name, type, label, registerOptions }) => (
-                <FormControl key={name} isInvalid={!!errors[name]}>
-                  <FormLabel htmlFor={name}>{label}</FormLabel>
-                  <Input type={type} {...register(name, registerOptions)} />
-                  {errors[name] && (
-                    <FormErrorMessage>{errors[name]!.message}</FormErrorMessage>
-                  )}
-                </FormControl>
-              ))}
-              <Button type="submit" isLoading={isSubmitting} colorScheme="teal">
-                Login
-              </Button>
-            </VStack>
-          </form>
-        </Box>
-      </Center>
-      <Fade in={isServerError}>
-        <Alert
-          status="error"
-          position="fixed"
-          bottom={64}
-          left="50%"
-          transform="translateX(-50%)"
-          w={605}
-          maxW="90vw"
-          boxShadow="2xl"
-          borderRadius="md"
-        >
-          <AlertIcon />
-          <AlertTitle>
-            Something went wrong. Make sure you entered valid credentials.
-          </AlertTitle>
-          <CloseButton onClick={() => setIsServerError(false)} />
-        </Alert>
-      </Fade>
-    </>
+    <AuthLayout
+      isError={isServerError}
+      onErrorClose={() => setIsServerError(false)}
+    >
+      <AuthForm fields={FIELDS} onSubmit={onSubmit} />
+    </AuthLayout>
   );
 };
 
