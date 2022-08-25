@@ -1,11 +1,4 @@
-import type { HTMLInputTypeAttribute } from 'react';
-import type { NextPage } from 'next';
-import {
-  type RegisterOptions,
-  type SubmitHandler,
-  type Path,
-  useForm,
-} from 'react-hook-form';
+import { type SubmitHandler, type Path, useForm } from 'react-hook-form';
 import {
   VStack,
   FormControl,
@@ -15,12 +8,7 @@ import {
   Button,
 } from '@chakra-ui/react';
 
-interface Field<T extends string> {
-  name: T;
-  type: HTMLInputTypeAttribute;
-  label: string;
-  registerOptions: RegisterOptions;
-}
+import type { Field } from '../../types/auth/form';
 
 interface Props<T extends object> {
   fields: Field<Extract<keyof T, string>>[];

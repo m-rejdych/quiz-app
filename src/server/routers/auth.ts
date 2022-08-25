@@ -13,14 +13,21 @@ const authRouter = trpc.router().mutation('register', {
     username: z.string(),
   }),
   resolve: async ({ input: { password, ...rest } }) => {
-    const hashedPassword = await hash(password, 12);
+    try {
+      const hashedPassword = await hash(password, 12);
 
-    const user = await prisma.user.create({
-      data: { ...rest, password: hashedPassword },
-      select: { email: true, id: true },
-    });
+      const user = await prisma.user.create({
+        data: { ...rest, password: hashedPassword },
+        select: { email: true, id: true },
+      });
 
-    return { email: user.email, id: user.id };
+      return { email: user.email, id: user.id };
+    } catch (error) {
+      throw new trpc.TRPCError({
+        code: 'CONFLICT',
+        message: 'Email already in use.',
+      });
+    }
   },
 });
 
