@@ -20,6 +20,9 @@ const authRouter = trpc.router().mutation('register', {
         data: { ...rest, password: hashedPassword },
         select: { email: true, id: true },
       });
+      await prisma.profile.create({
+        data: { userId: user.id },
+      });
 
       return { email: user.email, id: user.id };
     } catch (error) {
