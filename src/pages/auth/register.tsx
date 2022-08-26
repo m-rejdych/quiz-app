@@ -8,10 +8,17 @@ import AuthLayout from '../../components/auth/layout';
 import AuthForm from '../../components/auth/form';
 import { trpc } from '../../utils/trpc';
 import { REGISTER_FIELDS } from '../../constants/auth/form';
-import { type RegisterFieldNames, AuthMode } from '../../types/auth/form';
+import {
+  type RegisterFieldNames,
+  ServerError,
+  AuthMode,
+} from '../../types/auth/form';
 
 const Register: NextPage = () => {
-  const [isServerError, setIsServerError] = useState(false);
+  const [serverError, setServerError] = useState<Omit<ServerError, 'onClose'>>({
+    open: false,
+    text: '',
+  });
   const register = trpc.useMutation('register');
   const router = useRouter();
 
@@ -30,18 +37,27 @@ const Register: NextPage = () => {
         const { callbackUrl } = router.query;
         await router.push((callbackUrl as string | undefined) ?? '/');
       } else {
-        setIsServerError(true);
+        setServerError({ open: true, text: 'Invalid email or password.' });
       }
-    } catch (error) {
-      setIsServerError(true);
+    } catch (error: any) {
+      setServerError({
+        open: true,
+        text:
+          error.data.httpStatus === 400
+            ? 'Invalid credentials.'
+            : 'Email already in use.',
+      });
     }
   };
 
   return (
     <AuthLayout
       mode={AuthMode.Register}
-      isError={isServerError}
-      onErrorClose={() => setIsServerError(false)}
+      error={{
+        ...serverError,
+        onClose: () => setServerError((prev) => ({ ...prev, open: false })),
+        onAnimationEnd: () => setServerError((prev) => ({ ...prev, text: '' })),
+      }}
     >
       <AuthForm fields={REGISTER_FIELDS} onSubmit={handleSubmit} />
     </AuthLayout>

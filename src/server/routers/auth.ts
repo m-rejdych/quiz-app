@@ -9,8 +9,11 @@ const authRouter = trpc.router().mutation('register', {
     email: z.string().email(),
     password: z
       .string()
-      .regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/),
-    username: z.string(),
+      .regex(
+        /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/,
+        'Password must be at least 6 characters long and contain numbers and special characters.',
+      ),
+    username: z.string().min(3, 'Username must be at least 3 characters long.'),
   }),
   resolve: async ({ input: { password, ...rest } }) => {
     try {

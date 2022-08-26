@@ -12,20 +12,18 @@ import {
   Text,
 } from '@chakra-ui/react';
 
-import { AuthMode } from '../../types/auth/form';
+import { AuthMode, ServerError } from '../../types/auth/form';
 
 interface Props {
   children?: React.ReactNode;
   mode: AuthMode;
-  isError: boolean;
-  onErrorClose: () => void;
+  error: ServerError;
 }
 
 const AuthLayout: NextPage<Props> = ({
   children,
   mode,
-  isError,
-  onErrorClose,
+  error: { text, open, onClose, onAnimationEnd },
 }) => {
   const { query } = useRouter();
 
@@ -80,23 +78,21 @@ const AuthLayout: NextPage<Props> = ({
           {renderLink()}
         </Box>
       </Center>
-      <Fade in={isError}>
+      <Fade in={open} onAnimationEnd={onAnimationEnd}>
         <Alert
           status="error"
           position="fixed"
           bottom={64}
           left="50%"
           transform="translateX(-50%)"
-          w={605}
+          w="auto"
           maxW="90vw"
           boxShadow="2xl"
           borderRadius="md"
         >
           <AlertIcon />
-          <AlertTitle>
-            Something went wrong. Make sure you entered valid credentials.{' '}
-          </AlertTitle>
-          <CloseButton onClick={onErrorClose} />
+          <AlertTitle>{text}</AlertTitle>
+          <CloseButton onClick={onClose} />
         </Alert>
       </Fade>
     </>

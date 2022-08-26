@@ -29,17 +29,26 @@ export const LOGIN_FIELDS: Field<keyof LoginFieldNames>[] = [
     label: 'Password',
     registerOptions: {
       required: 'Password is required.',
-      pattern: {
-        value: PASSWORD_PATTERN,
-        message:
-          'Password must be at least 6 characters long and contain numbers and special characters.',
-      },
     },
   },
 ];
 
 export const REGISTER_FIELDS: Field<keyof RegisterFieldNames>[] = [
-  ...LOGIN_FIELDS,
+  ...LOGIN_FIELDS.map((field) =>
+    field.name === 'password'
+      ? {
+          ...field,
+          registerOptions: {
+            ...field.registerOptions,
+            pattern: {
+              value: PASSWORD_PATTERN,
+              message:
+                'Password must be at least 6 characters long and contain numbers and special characters.',
+            },
+          },
+        }
+      : field,
+  ),
   {
     name: 'username',
     type: 'text',

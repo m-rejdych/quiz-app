@@ -5,7 +5,7 @@ export interface Field<T extends string> {
   name: T;
   type: HTMLInputTypeAttribute;
   label: string;
-  registerOptions: RegisterOptions;
+  registerOptions?: RegisterOptions;
 }
 
 export interface LoginFieldNames {
@@ -21,3 +21,11 @@ export enum AuthMode {
   Login,
   Register,
 }
+
+export interface ServerError {
+  text: string;
+  open: boolean;
+  onClose: () => void;
+  onAnimationEnd?: () => void;
+}
+

@@ -30,8 +30,11 @@ const Login: NextPage = () => {
   return (
     <AuthLayout
       mode={AuthMode.Login}
-      isError={isServerError}
-      onErrorClose={() => setIsServerError(false)}
+      error={{
+        open: isServerError,
+        text: 'Invalid email or password',
+        onClose: () => setIsServerError(false),
+      }}
     >
       <AuthForm fields={LOGIN_FIELDS} onSubmit={handleSubmit} />
     </AuthLayout>
