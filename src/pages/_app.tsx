@@ -30,7 +30,7 @@ const App = ({
 export default withTRPC<AppRouter>({
   config: () => {
     return {
-      url: '/api/trpc',
+      url: `${process.env.NEXTAUTH_URL ?? ''}/api/trpc`,
     };
   },
   ssr: true,

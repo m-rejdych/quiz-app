@@ -38,7 +38,7 @@ const AuthLayout: FC<Props> = ({
             Don't have an account?{' '}
             <Text
               as="span"
-              color="red.300"
+              color="secondary.light"
               _hover={{ textDecoration: 'underline' }}
             >
               <Link href={`/auth/register${linkQuery}`}>Register</Link>
@@ -51,7 +51,7 @@ const AuthLayout: FC<Props> = ({
             Already have an account?{' '}
             <Text
               as="span"
-              color="red.300"
+              color="secondary.light"
               _hover={{ textDecoration: 'underline' }}
             >
               <Link href={`/auth/login${linkQuery}`}>Login</Link>

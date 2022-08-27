@@ -6,7 +6,7 @@ import type { SubmitHandler } from 'react-hook-form';
 
 import AuthLayout from '../../components/auth/layout';
 import AuthForm from '../../components/auth/form';
-import { getSeverSession } from '../../utils/session';
+import { getServerSession } from '../../utils/session';
 import { trpc } from '../../utils/trpc';
 import { REGISTER_FIELDS } from '../../constants/auth/form';
 import {
@@ -20,7 +20,7 @@ const Register: NextPage = () => {
     open: false,
     text: '',
   });
-  const register = trpc.useMutation('register');
+  const register = trpc.useMutation('auth.register');
   const router = useRouter();
 
   const handleSubmit: SubmitHandler<RegisterFieldNames> = async (fields) => {
@@ -66,7 +66,7 @@ const Register: NextPage = () => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const session = await getSeverSession(ctx);
+  const session = await getServerSession(ctx);
   if (session) {
     return {
       redirect: {

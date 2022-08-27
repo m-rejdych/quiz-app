@@ -22,7 +22,7 @@ const TopBar: FC = () => {
       justifyContent="space-between"
     >
       <Link href="/">
-        <Text cursor="pointer" fontWeight={700} fontSize="xl">Quiz app</Text>
+        <Text cursor="pointer" color="primary.light" fontWeight={700} fontSize="xl">Quiz app</Text>
       </Link>
       <Link href="/profile">
         <HStack spacing={4} cursor="pointer">

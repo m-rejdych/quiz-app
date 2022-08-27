@@ -26,6 +26,7 @@ export const authOptions: NextAuthOptions = {
           select: {
             password: true,
             username: true,
+            id: true,
           },
         });
 
@@ -35,6 +36,7 @@ export const authOptions: NextAuthOptions = {
         if (!isValid) return null;
 
         return {
+          id: user.id,
           email,
           name: user.username,
           image: null,
@@ -42,6 +44,12 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  callbacks: {
+    jwt: ({ token, user }) => {
+      if (user?.id) token.id = user.id;
+      return token;
+    },
+  },
   session: {
     strategy: 'jwt',
     maxAge: 60 * 60,

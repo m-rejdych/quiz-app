@@ -2,9 +2,10 @@ import * as trpc from '@trpc/server';
 import { z } from 'zod';
 import { hash } from 'bcryptjs';
 
+import createRouter from '../../server/createRouter';
 import { prisma } from '../../server/prisma';
 
-const authRouter = trpc.router().mutation('register', {
+const authRouter = createRouter().mutation('register', {
   input: z.object({
     email: z.string().email(),
     password: z
