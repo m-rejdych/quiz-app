@@ -1,10 +1,12 @@
 import type { FC } from 'react';
-import { Flex, Text } from '@chakra-ui/react';
-
-import useAuthStore from '../../store/auth';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { Flex, HStack, Text, Avatar } from '@chakra-ui/react';
 
 const TopBar: FC = () => {
-  const username = useAuthStore((state) => state.session?.user?.name);
+  const { data } = useSession();
+
+  if (!data) return null;
 
   return (
     <Flex
@@ -13,12 +15,21 @@ const TopBar: FC = () => {
       left={0}
       right={0}
       height={16}
+      px={8}
       bgColor="blackAlpha.400"
       boxShadow="sm"
       alignItems="center"
-      justifyContent="flex-end"
+      justifyContent="space-between"
     >
-      <Text fontWeight={700} mr={8}>{username}</Text>
+      <Link href="/">
+        <Text cursor="pointer" fontWeight={700} fontSize="xl">Quiz app</Text>
+      </Link>
+      <Link href="/profile">
+        <HStack spacing={4} cursor="pointer">
+          <Text fontWeight={700}>{data.user?.name}</Text>
+          <Avatar size="sm" />
+        </HStack>
+      </Link>
     </Flex>
   );
 };
