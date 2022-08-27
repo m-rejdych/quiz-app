@@ -5,7 +5,7 @@ import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../pages/api/auth/[...nextauth]';
 import { replaceUndefined } from '../utils/serialize';
 
-interface Props {
+export interface SessionProps {
   session: Session;
 }
 
@@ -15,9 +15,9 @@ interface GetPropsWithSessionOptions {
 
 type GetPropsWithSession = (
   options?: GetPropsWithSessionOptions,
-) => GetServerSideProps<Props>;
+) => GetServerSideProps<SessionProps>;
 
-const getSession = async ({
+export const getSession = async ({
   req,
   res,
 }: GetServerSidePropsContext): Promise<
@@ -48,7 +48,6 @@ export const getPropsWithSession: GetPropsWithSession =
 
       return { props: { session: replaceUndefined(session, null) } };
     } catch (error) {
-      console.log(error);
       return {
         redirect: {
           destination: `/auth/login${

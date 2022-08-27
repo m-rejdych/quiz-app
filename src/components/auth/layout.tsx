@@ -1,6 +1,6 @@
+import type { FC } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import type { NextPage } from 'next';
 import {
   Center,
   CloseButton,
@@ -20,7 +20,7 @@ interface Props {
   error: ServerError;
 }
 
-const AuthLayout: NextPage<Props> = ({
+const AuthLayout: FC<Props> = ({
   children,
   mode,
   error: { text, open, onClose, onAnimationEnd },
@@ -29,7 +29,7 @@ const AuthLayout: NextPage<Props> = ({
 
   const renderLink = (): React.ReactNode => {
     const { callbackUrl } = query;
-    const linkQuery = `?callbackUrl=${callbackUrl ?? '/'}`;
+    const linkQuery = callbackUrl ? `?callbackUrl=${callbackUrl}` : '';
 
     switch (mode) {
       case AuthMode.Login:

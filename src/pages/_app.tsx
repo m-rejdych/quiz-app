@@ -1,18 +1,24 @@
-import type { AppProps } from 'next/app';
-import superjson from 'superjson';
 import { withTRPC } from '@trpc/next';
 import { ChakraProvider, cookieStorageManager } from '@chakra-ui/react';
+import type { AppProps } from 'next/app';
 
-import type { AppRouter } from './api/trpc/[trpc]';
+import Layout from '../components/layout/layout';
 import theme from '../theme';
+import type { AppRouter } from './api/trpc/[trpc]';
 
-function MyApp({ Component, pageProps }: AppProps) {
+const App = ({ Component, pageProps, router: { pathname } }: AppProps) => {
   return (
     <ChakraProvider colorModeManager={cookieStorageManager} theme={theme}>
-      <Component {...pageProps} />
+      {pathname.includes('/auth') ? (
+        <Component {...pageProps} />
+      ) : (
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      )}
     </ChakraProvider>
   );
-}
+};
 
 export default withTRPC<AppRouter>({
   config: () => {
@@ -21,4 +27,4 @@ export default withTRPC<AppRouter>({
     };
   },
   ssr: true,
-})(MyApp);
+})(App);

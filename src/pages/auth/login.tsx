@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import type { NextPage } from 'next';
-import type { SubmitHandler } from 'react-hook-form';
 import { useRouter } from 'next/router';
 import { signIn } from 'next-auth/react';
+import type { NextPage, GetServerSideProps } from 'next';
+import type { SubmitHandler } from 'react-hook-form';
 
 import AuthLayout from '../../components/auth/layout';
 import AuthForm from '../../components/auth/form';
+import { getSession } from '../../utils/session';
 import { LOGIN_FIELDS } from '../../constants/auth/form';
 import { type LoginFieldNames, AuthMode } from '../../types/auth/form';
 
@@ -39,6 +40,20 @@ const Login: NextPage = () => {
       <AuthForm fields={LOGIN_FIELDS} onSubmit={handleSubmit} />
     </AuthLayout>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const session = await getSession(ctx);
+  if (session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+
+  return { props: {} };
 };
 
 export default Login;
