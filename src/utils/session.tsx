@@ -1,6 +1,5 @@
 import type { GetServerSidePropsContext, GetServerSideProps } from 'next';
 import type { Session } from 'next-auth';
-import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { unstable_getServerSession } from 'next-auth';
 
 import { authOptions } from '../pages/api/auth/[...nextauth]';
@@ -21,7 +20,7 @@ type GetPropsWithSession = (
 export const getServerSession = async ({
   req,
   res,
-}: GetServerSidePropsContext | CreateNextContextOptions): Promise<
+}: GetServerSidePropsContext): Promise<
   ReturnType<typeof unstable_getServerSession>
 > => {
   const session = await unstable_getServerSession(req, res, authOptions);

@@ -5,10 +5,10 @@ export interface Context {
   userId?: number;
 }
 
-export const createContext = async (
-  opts: CreateNextContextOptions,
-): Promise<Context> => {
-  const token = await getToken({ req: opts.req });
+export const createContext = async ({
+  req,
+}: CreateNextContextOptions): Promise<Context> => {
+  const token = await getToken({ req });
   if (!token?.id) return {};
 
   return { userId: token.id as number };

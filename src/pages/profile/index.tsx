@@ -4,7 +4,9 @@ import { getPropsWithSession } from '../../utils/session';
 import { trpc } from '../../utils/trpc';
 
 const Profile: NextPage = () => {
-  const { data } = trpc.useQuery(['profile.get-data']);
+  const { data } = trpc.useQuery(['profile.get-data'], {
+    ssr: false,
+  });
 
   return <div>{data}</div>;
 };
