@@ -28,9 +28,14 @@ const App = ({
 };
 
 export default withTRPC<AppRouter>({
-  config: () => {
+  config: ({ ctx }) => {
     return {
       url: `${process.env.NEXTAUTH_URL ?? ''}/api/trpc`,
+      headers() {
+        return {
+          cookie: ctx?.req?.headers.cookie,
+        }
+      },
     };
   },
   ssr: true,
