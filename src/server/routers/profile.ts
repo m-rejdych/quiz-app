@@ -12,11 +12,18 @@ const profileRouter = createRouter()
   .query('get-data', {
     input: z
       .object({
-        id: z.string().or(z.number()),
+        id: z.number(),
       })
       .optional(),
-    resolve: ({ ctx }) => {
-      return ctx.userId;
+    resolve: async ({ input, ctx: { prisma, userId } }) => {
+      const id = input?.id ?? userId;
+
+      const profile = await prisma.profile.findUnique({
+        where: { userId: id },
+      });
+      if (!profile) throw new trpc.TRPCError({ code: 'NOT_FOUND' });
+
+      return profile;
     },
   });
 export default profileRouter;

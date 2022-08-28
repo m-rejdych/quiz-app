@@ -8,7 +8,7 @@ const Profile: NextPage = () => {
     ssr: false,
   });
 
-  return <div>{data}</div>;
+  return <div>{data?.userId}</div>;
 };
 
 export const getServerSideProps = getPropsWithSession({

@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { hash } from 'bcryptjs';
 
 import createRouter from '../../server/createRouter';
-import { prisma } from '../../server/prisma';
 
 const authRouter = createRouter().mutation('register', {
   input: z.object({
@@ -16,7 +15,7 @@ const authRouter = createRouter().mutation('register', {
       ),
     username: z.string().min(3, 'Username must be at least 3 characters long.'),
   }),
-  resolve: async ({ input: { password, ...rest } }) => {
+  resolve: async ({ input: { password, ...rest }, ctx: { prisma } }) => {
     try {
       const hashedPassword = await hash(password, 12);
 
