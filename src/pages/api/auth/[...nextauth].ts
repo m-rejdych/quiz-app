@@ -49,6 +49,10 @@ export const authOptions: NextAuthOptions = {
       if (user?.id) token.id = user.id;
       return token;
     },
+    session: ({ token, session }) => {
+      if (session.user) session.user.id = token.id;
+      return session;
+    },
   },
   session: {
     strategy: 'jwt',

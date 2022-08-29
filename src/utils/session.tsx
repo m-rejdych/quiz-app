@@ -31,7 +31,8 @@ export const getServerSession = async ({
 export const getPropsWithSession: GetPropsWithSession =
   (options = {}) =>
   async (ctx) => {
-    const { callbackUrl } = options;
+    const { callbackUrl: callbackUrlOpt } = options;
+    const callbackUrl = callbackUrlOpt ?? ctx.resolvedUrl;
 
     try {
       const session = await getServerSession(ctx);

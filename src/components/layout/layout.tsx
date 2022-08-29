@@ -1,5 +1,5 @@
 import type { FC, ReactElement } from 'react';
-import { Box } from '@chakra-ui/react';
+import { Container } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
 import TopBar from './topBar';
@@ -14,10 +14,15 @@ const Layout: FC<Props> = ({ children }) => {
   const isAuthPage = pathname.includes('/auth');
 
   return (
-    <Box position="relative" top={isAuthPage ? 0 : 16}>
+    <Container
+      maxW="container.xl"
+      py={8}
+      position="relative"
+      mt={isAuthPage ? 0 : 16}
+    >
       {isAuthPage || <TopBar />}
       {children}
-    </Box>
+    </Container>
   );
 };
 

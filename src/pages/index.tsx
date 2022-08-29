@@ -6,6 +6,6 @@ const Home: NextPage = () => {
   return <div></div>;
 };
 
-export const getServerSideProps = getPropsWithSession({ callbackUrl: '/' });
+export const getServerSideProps = getPropsWithSession();
 
 export default Home;
