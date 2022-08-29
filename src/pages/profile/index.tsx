@@ -1,6 +1,8 @@
 import type { NextPage } from 'next';
+import { VStack } from '@chakra-ui/react';
 
 import ProfileHeader from '../../components/profile/profileHeader';
+import ProfileData from '../../components/profile/profileData';
 import useAuthError from '../../hooks/useAuthError';
 import { getPropsWithSession } from '../../utils/session';
 import { trpc } from '../../utils/trpc';
@@ -10,9 +12,10 @@ const MyProfile: NextPage = () => {
   const { data } = trpc.useQuery(['profile.get-data'], { onError });
 
   return data ? (
-    <div>
-      <ProfileHeader profile={data} isMe />
-    </div>
+    <VStack spacing={10} alignItems="stretch">
+      <ProfileHeader user={data.user} isMe />
+      <ProfileData profile={data} isMe />
+    </VStack>
   ) : null;
 };
 

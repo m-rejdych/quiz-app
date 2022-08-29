@@ -20,7 +20,7 @@ model Profile {
   userId Int @unique
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName String?
-  secondName String?
+  lastName String?
   avatarUrl String?
   genderId Int?
   gender Gender? @relation(fields: [genderId], references: [id])

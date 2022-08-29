@@ -1,9 +1,10 @@
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import { Flex, Text } from '@chakra-ui/react';
+import { VStack, Flex, Text } from '@chakra-ui/react';
 
 import ProfileHeader from '../../components/profile/profileHeader';
+import ProfileData from '../../components/profile/profileData';
 import useAuthError from '../../hooks/useAuthError';
 import { trpc } from '../../utils/trpc';
 import { getPropsWithSession } from '../../utils/session';
@@ -24,8 +25,6 @@ const Profile: NextPage = () => {
     },
   );
 
-  if (!session?.user) return null;
-
   if (error?.data?.httpStatus === 404)
     return (
       <Flex justifyContent="center" alignItems="center">
@@ -33,10 +32,13 @@ const Profile: NextPage = () => {
       </Flex>
     );
 
+  const isMe = !!data && !!session && data.userId === session?.user?.id;
+
   return data ? (
-    <div>
-      <ProfileHeader profile={data} isMe={data.userId === session.user.id} />
-    </div>
+    <VStack spacing={10} alignItems="stretch">
+      <ProfileHeader user={data.user} isMe={isMe} />
+      <ProfileData profile={data} isMe={isMe} />
+    </VStack>
   ) : null;
 };
 

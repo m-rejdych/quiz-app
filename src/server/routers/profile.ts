@@ -28,6 +28,7 @@ const profileRouter = createRouter()
               username: true,
             },
           },
+          gender: true,
         },
       });
       if (!profile) throw new trpc.TRPCError({ code: 'NOT_FOUND' });

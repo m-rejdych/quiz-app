@@ -15,7 +15,7 @@ const Layout: FC<Props> = ({ children }) => {
 
   return (
     <Container
-      maxW="container.xl"
+      maxW="container.lg"
       py={8}
       position="relative"
       mt={isAuthPage ? 0 : 16}
