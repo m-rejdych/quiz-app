@@ -14,5 +14,5 @@ export const createContext = async ({
   const token = await getToken({ req });
   if (!token?.id) return { prisma };
 
-  return { userId: token.id as number, prisma };
+  return { userId: token.id, prisma };
 };

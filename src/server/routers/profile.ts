@@ -36,4 +36,5 @@ const profileRouter = createRouter()
       return profile;
     },
   });
+
 export default profileRouter;
