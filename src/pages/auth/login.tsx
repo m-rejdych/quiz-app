@@ -4,7 +4,7 @@ import { signIn } from 'next-auth/react';
 import type { NextPage, GetServerSideProps } from 'next';
 import type { SubmitHandler } from 'react-hook-form';
 
-import AuthLayout from '../../components/auth/layout';
+import AuthContainer from '../../components/auth/container';
 import AuthForm from '../../components/auth/form';
 import { getServerSession } from '../../utils/session';
 import { LOGIN_FIELDS } from '../../constants/auth/form';
@@ -29,7 +29,7 @@ const Login: NextPage = () => {
   };
 
   return (
-    <AuthLayout
+    <AuthContainer
       mode={AuthMode.Login}
       error={{
         open: isServerError,
@@ -38,7 +38,7 @@ const Login: NextPage = () => {
       }}
     >
       <AuthForm fields={LOGIN_FIELDS} onSubmit={handleSubmit} />
-    </AuthLayout>
+    </AuthContainer>
   );
 };
 

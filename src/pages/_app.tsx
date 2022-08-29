@@ -7,21 +7,13 @@ import Layout from '../components/layout/layout';
 import theme from '../theme';
 import type { AppRouter } from './api/trpc/[trpc]';
 
-const App = ({
-  Component,
-  pageProps: { session, ...pageProps },
-  router: { pathname },
-}: AppProps) => {
+const App = ({ Component, pageProps: { session, ...pageProps } }: AppProps) => {
   return (
     <ChakraProvider colorModeManager={cookieStorageManager} theme={theme}>
       <SessionProvider session={session}>
-        {pathname.includes('/auth') ? (
+        <Layout>
           <Component {...pageProps} />
-        ) : (
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        )}
+        </Layout>
       </SessionProvider>
     </ChakraProvider>
   );
@@ -34,7 +26,7 @@ export default withTRPC<AppRouter>({
       headers() {
         return {
           cookie: ctx?.req?.headers.cookie,
-        }
+        };
       },
     };
   },

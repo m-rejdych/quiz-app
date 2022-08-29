@@ -4,7 +4,7 @@ import { signIn } from 'next-auth/react';
 import type { NextPage, GetServerSideProps } from 'next';
 import type { SubmitHandler } from 'react-hook-form';
 
-import AuthLayout from '../../components/auth/layout';
+import AuthContainer from '../../components/auth/container';
 import AuthForm from '../../components/auth/form';
 import { getServerSession } from '../../utils/session';
 import { trpc } from '../../utils/trpc';
@@ -52,7 +52,7 @@ const Register: NextPage = () => {
   };
 
   return (
-    <AuthLayout
+    <AuthContainer
       mode={AuthMode.Register}
       error={{
         ...serverError,
@@ -61,7 +61,7 @@ const Register: NextPage = () => {
       }}
     >
       <AuthForm fields={REGISTER_FIELDS} onSubmit={handleSubmit} />
-    </AuthLayout>
+    </AuthContainer>
   );
 };
 

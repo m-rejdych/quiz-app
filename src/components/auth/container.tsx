@@ -20,7 +20,7 @@ interface Props {
   error: ServerError;
 }
 
-const AuthLayout: FC<Props> = ({
+const AuthContainer: FC<Props> = ({
   children,
   mode,
   error: { text, open, onClose, onAnimationEnd },
@@ -73,29 +73,30 @@ const AuthLayout: FC<Props> = ({
           w={500}
           maxW="90vw"
           boxShadow="lg"
+          position="relative"
         >
           {children}
           {renderLink()}
+          <Fade in={open} onAnimationEnd={onAnimationEnd}>
+            <Alert
+              status="error"
+              position="absolute"
+              top="calc(100% + 64px)"
+              left="50%"
+              transform="translateX(-50%)"
+              w="auto"
+              maxW="90vw"
+              boxShadow="2xl"
+              borderRadius="md"
+            >
+              <AlertIcon />
+              <AlertTitle>{text}</AlertTitle>
+              <CloseButton onClick={onClose} />
+            </Alert>
+          </Fade>
         </Box>
       </Center>
-      <Fade in={open} onAnimationEnd={onAnimationEnd}>
-        <Alert
-          status="error"
-          position="fixed"
-          bottom={64}
-          left="50%"
-          transform="translateX(-50%)"
-          w="auto"
-          maxW="90vw"
-          boxShadow="2xl"
-          borderRadius="md"
-        >
-          <AlertIcon />
-          <AlertTitle>{text}</AlertTitle>
-          <CloseButton onClick={onClose} />
-        </Alert>
-      </Fade>
     </>
   );
 };
-export default AuthLayout;
+export default AuthContainer;
