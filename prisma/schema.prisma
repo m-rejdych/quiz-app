@@ -37,7 +37,7 @@ model Quiz {
   id Int @id @default(autoincrement())
   authorId Int @unique
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  name String
+  title String
   questions Question[]
 }
 
