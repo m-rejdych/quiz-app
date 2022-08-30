@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { VStack, Box, Text, Select } from '@chakra-ui/react';
 
 import Editable from '../../components/editable/editable';
+import useAuthError from '../../hooks/useAuthError';
 import { trpc } from '../../utils/trpc';
 
 type Profile = Prisma.ProfileGetPayload<{ include: { gender: true } }>;
@@ -19,7 +20,7 @@ interface SelectOption {
 
 interface Field {
   name: keyof Profile;
-  value: string | null;
+  value: string | number | null;
   label: string;
   type: FieldType;
   options?: SelectOption[];
@@ -32,10 +33,19 @@ enum FieldType {
 
 const ProfileData: FC<Props> = ({
   isMe,
-  profile: { firstName, lastName, gender },
+  profile: { id, firstName, lastName, gender },
 }) => {
+  const onError = useAuthError();
+  const { invalidateQueries } = trpc.useContext();
   const { data } = trpc.useQuery(['gender.list'], {
     refetchOnWindowFocus: false,
+    onError,
+  });
+  const updateMutation = trpc.useMutation('profile.update', {
+    onError,
+    onSuccess: () => {
+      invalidateQueries(['profile.get-data', { id }]);
+    },
   });
 
   const fields: Field[] = [
@@ -52,24 +62,42 @@ const ProfileData: FC<Props> = ({
       type: FieldType.Text,
     },
     {
-      name: 'gender',
-      value: gender?.type ?? null,
+      name: 'genderId',
+      value: gender?.id ?? null,
       label: 'Gender',
       type: FieldType.Select,
       options: data?.map(({ id, type }) => ({ value: id, label: type })),
     },
   ];
 
+  const handleSubmit = async (
+    value: string | number,
+    name: Field['name'],
+  ): Promise<void> => {
+    const formattedValue = value || null;
+
+    try {
+      await updateMutation.mutateAsync({
+        id,
+        data: { [name]: formattedValue },
+      });
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
+  };
+
   const renderEditComponent = ({
+    name,
     type,
     value,
     options,
-  }: Pick<Field, 'type' | 'value' | 'options'>): ReactNode => {
+  }: Omit<Field, 'label'>): ReactNode => {
     switch (type) {
       case FieldType.Text:
         return (
           <Editable
-            defaultValue={value ?? 'None'}
+            onSubmit={(newValue) => handleSubmit(newValue, name)}
+            defaultValue={(value as string | null) ?? 'None'}
             fontSize="lg"
             isPreviewFocusable={false}
             previewProps={{
@@ -79,7 +107,12 @@ const ProfileData: FC<Props> = ({
         );
       case FieldType.Select:
         return (
-          <Select placeholder="None" color={value ? 'white' : 'gray.500'}>
+          <Select
+            placeholder="None"
+            defaultValue={value ?? undefined}
+            color={value ? 'white' : 'gray.500'}
+            onChange={(e) => handleSubmit(parseInt(e.target.value, 10), name)}
+          >
             {options?.map(({ value: optValue, label }) => (
               <option key={`select-${label}-${optValue}`} value={optValue}>
                 {label}
@@ -100,7 +133,7 @@ const ProfileData: FC<Props> = ({
             {label}
           </Text>
           {isMe ? (
-            renderEditComponent({ type, value, options })
+            renderEditComponent({ type, value, options, name })
           ) : (
             <Text color={value ? 'white' : 'gray.500'} fontSize="lg">
               {value ?? 'None'}

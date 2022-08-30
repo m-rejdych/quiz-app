@@ -35,6 +35,24 @@ const profileRouter = createRouter()
 
       return profile;
     },
-  });
+  })
+  .mutation('update', {
+    input: z.object({
+      id: z.number(),
+      data: z.object({
+        firstName: z.string().or(z.null()).optional(),
+        lastName: z.string().or(z.null()).optional(),
+        avatarUrl: z.string().or(z.null()).optional(),
+        genderId: z.number().or(z.null()).optional(),
+      }),
+    }),
+    resolve: async ({ input: { id, data }, ctx: { prisma, userId } }) => {
+      const foundProfile = await prisma.profile.findUnique({ where: { id } });
+      if (!foundProfile) throw new trpc.TRPCError({ code: 'NOT_FOUND' });
+      if (foundProfile.userId !== userId)
+        throw new trpc.TRPCError({ code: 'FORBIDDEN' });
 
+      return prisma.profile.update({ where: { id }, data });
+    },
+  });
 export default profileRouter;

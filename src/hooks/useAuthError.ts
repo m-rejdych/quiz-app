@@ -8,9 +8,7 @@ type ErrorHandler = (error: TRPCClientErrorLike<AppRouter>) => void;
 const useAuthError = (): ErrorHandler => {
   const router = useRouter();
 
-  const handleError: ErrorHandler = (error, errCb?: ErrorHandler) => {
-    errCb?.(error);
-
+  const handleError: ErrorHandler = (error) => {
     if (error.data?.httpStatus === 401) {
       router.push(`/auth/login?callbackUrl=${router.asPath}`);
     }
