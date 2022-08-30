@@ -8,16 +8,13 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
-  Input,
   VStack,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
   Text,
   Flex,
 } from '@chakra-ui/react';
 
 import AddQuestionButton from '../question/addButton';
+import LabeledInput from '../common/labeledInput';
 
 interface Props {
   isOpen: boolean;
@@ -25,30 +22,24 @@ interface Props {
 }
 
 const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
-  const [name, setName] = useState('');
-  const [errors, setErrors] = useState({
-    name: '',
-  });
+  const [title, setTitle] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleChangeName = (e: ChangeEvent<HTMLInputElement>): void => {
-    const value = e.target.value;
-    setName(value);
+  const isError = isSubmitted && !title;
 
-    if (value && errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+  const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>): void => {
+    setTitle(e.target.value);
   };
 
   const handleSubmit = (): void => {
-    if (!name) {
-      setErrors((prev) => ({ ...prev, name: 'Name is required.' }));
-      return;
-    }
+    setIsSubmitted(true);
+
+    if (!title) return;
   };
 
   const handleCloseComplete = (): void => {
-    setName('');
-    setErrors((prev) =>
-      Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: '' }), {}),
-    );
+    setTitle('');
+    setIsSubmitted(false);
   };
 
   return (
@@ -64,13 +55,17 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6} alignItems="stretch">
-            <FormControl isInvalid={!!errors.name}>
-              <FormLabel htmlFor="title">Name</FormLabel>
-              <Input name="title" value={name} onChange={handleChangeName} />
-              {errors.name && (
-                <FormErrorMessage>{errors.name}</FormErrorMessage>
-              )}
-            </FormControl>
+            <LabeledInput
+              isInvalid={isError}
+              inputProps={{
+                name: 'title',
+                value: title,
+                onChange: handleChangeTitle,
+              }}
+              label="Quiz title"
+              labelProps={{ htmlFor: 'quiz-title' }}
+              error={isError ? 'Quiz title is required.' : undefined}
+            />
             <Flex justifyContent="space-between" alignItems="center">
               <Text fontSize="md" fontWeight="medium">
                 Questions
