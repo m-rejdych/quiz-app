@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react';
 import type { Prisma } from '@prisma/client';
 import { VStack, Box, Text, Select } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
 
 import Editable from '../../components/editable/editable';
 import useAuthError from '../../hooks/useAuthError';
@@ -36,6 +37,7 @@ const ProfileData: FC<Props> = ({
   profile: { id, firstName, lastName, gender },
 }) => {
   const onError = useAuthError();
+  const { query } = useRouter();
   const { invalidateQueries } = trpc.useContext();
   const { data } = trpc.useQuery(['gender.list'], {
     refetchOnWindowFocus: false,
@@ -44,7 +46,7 @@ const ProfileData: FC<Props> = ({
   const updateMutation = trpc.useMutation('profile.update', {
     onError,
     onSuccess: () => {
-      invalidateQueries(['profile.get-data', { id }]);
+      invalidateQueries(['profile.get-data', query.id ? { id } : undefined]);
     },
   });
 
