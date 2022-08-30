@@ -1,8 +1,9 @@
 import type { FC, ReactNode } from 'react';
 import type { Prisma } from '@prisma/client';
-import { VStack, Box, Text, Select, SelectField } from '@chakra-ui/react';
+import { VStack, Box, Text, Select } from '@chakra-ui/react';
 
 import Editable from '../../components/editable/editable';
+import { trpc } from '../../utils/trpc';
 
 type Profile = Prisma.ProfileGetPayload<{ include: { gender: true } }>;
 
@@ -12,7 +13,7 @@ interface Props {
 }
 
 interface SelectOption {
-  optValue: string | number;
+  value: string | number;
   label: string;
 }
 
@@ -33,6 +34,10 @@ const ProfileData: FC<Props> = ({
   isMe,
   profile: { firstName, lastName, gender },
 }) => {
+  const { data } = trpc.useQuery(['gender.list'], {
+    refetchOnWindowFocus: false,
+  });
+
   const fields: Field[] = [
     {
       name: 'firstName',
@@ -51,16 +56,7 @@ const ProfileData: FC<Props> = ({
       value: gender?.type ?? null,
       label: 'Gender',
       type: FieldType.Select,
-      options: [
-        {
-          optValue: 1,
-          label: 'Male',
-        },
-        {
-          optValue: 2,
-          label: 'Female',
-        },
-      ],
+      options: data?.map(({ id, type }) => ({ value: id, label: type })),
     },
   ];
 
@@ -84,7 +80,7 @@ const ProfileData: FC<Props> = ({
       case FieldType.Select:
         return (
           <Select placeholder="None" color={value ? 'white' : 'gray.500'}>
-            {options?.map(({ optValue, label }) => (
+            {options?.map(({ value: optValue, label }) => (
               <option key={`select-${label}-${optValue}`} value={optValue}>
                 {label}
               </option>
