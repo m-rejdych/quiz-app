@@ -13,6 +13,7 @@ model User {
   password String
   username String
   profile Profile?
+  quizes Quiz[]
 }
 
 model Profile {
@@ -30,4 +31,28 @@ model Gender {
   id Int @id
   type String @unique
   profiles Profile[]
+}
+
+model Quiz {
+  id Int @id @default(autoincrement())
+  authorId Int @unique
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  name String
+  questions Question[]
+}
+
+model Question {
+  id Int @id @default(autoincrement())
+  quizId Int @unique
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  title String
+  answers Answer[]
+}
+
+model Answer {
+  id Int @id @default(autoincrement())
+  questionId Int
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  content String
+  isCorrect Boolean
 }
