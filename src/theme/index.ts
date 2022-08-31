@@ -23,6 +23,30 @@ const theme = extendTheme({
       dark: chakraTheme.colors.red[700],
     },
   },
+  components: {
+    Popover: {
+      sizes: {
+        lg: {
+          content: {
+            width: chakraTheme.sizes.lg,
+          },
+        },
+        md: {
+          content: {
+            width: chakraTheme.sizes.md,
+          },
+        },
+      },
+      variants: {
+        responsive: {
+          content: {
+            maxWidth: 'unset',
+            width: 'unset',
+          },
+        },
+      },
+    },
+  },
 });
 
 export default theme;

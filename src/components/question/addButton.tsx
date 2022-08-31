@@ -10,15 +10,20 @@ import {
   PopoverBody,
   PopoverFooter,
   Button,
-  Input,
+  Text,
+  VStack,
+  Flex,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { AddIcon } from '@chakra-ui/icons';
+import { AddIcon, CloseIcon } from '@chakra-ui/icons';
 
 import LabeledInput from '../common/labeledInput';
+import AddAnswerButton from '../answer/addButton';
 
 const AddQuestionButton: FC = () => {
   const [title, setTitle] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const isError = isSubmitted && !title;
 
@@ -30,23 +35,28 @@ const AddQuestionButton: FC = () => {
     setIsSubmitted(true);
 
     if (!title) return;
+
+    onClose();
   };
 
   const handleClose = (): void => {
+    onClose();
+
     setTimeout(() => {
       setTitle('');
       setIsSubmitted(false);
-    }, 100);
+    }, 200);
   };
 
   return (
-    <Popover onClose={handleClose}>
+    <Popover isOpen={isOpen} onClose={handleClose} size="md">
       <PopoverTrigger>
         <IconButton
           aria-label="add-question"
           size="sm"
-          icon={<AddIcon />}
-          color="secondary.light"
+          icon={isOpen ? <CloseIcon /> : <AddIcon />}
+          colorScheme="red"
+          onClick={onOpen}
         />
       </PopoverTrigger>
       <PopoverContent>
@@ -54,20 +64,28 @@ const AddQuestionButton: FC = () => {
         <PopoverHeader>Add question</PopoverHeader>
         <PopoverCloseButton />
         <PopoverBody>
-          <LabeledInput
-            isInvalid={isError}
-            inputProps={{
-              name: 'question-title',
-              value: title,
-              onChange: handleChangeTitle,
-            }}
-            label="Question title"
-            labelProps={{ htmlFor: 'question-title' }}
-            error={isError ? 'Question title is required.' : undefined}
-          />
+          <VStack spacing={6} alignItems="stretch">
+            <LabeledInput
+              isInvalid={isError}
+              inputProps={{
+                name: 'question-title',
+                value: title,
+                onChange: handleChangeTitle,
+              }}
+              label="Question title"
+              labelProps={{ htmlFor: 'question-title' }}
+              error={isError ? 'Question title is required.' : undefined}
+            />
+            <Flex justifyContent="space-between" alignItems="center">
+              <Text fontSize="md" fontWeight="medium" mr={3}>
+                Answers
+              </Text>
+              <AddAnswerButton isOpen={isOpen} />
+            </Flex>
+          </VStack>
         </PopoverBody>
         <PopoverFooter>
-          <Button colorScheme="red" onClick={handleSubmit}>
+          <Button colorScheme="teal" onClick={handleSubmit}>
             Add
           </Button>
         </PopoverFooter>

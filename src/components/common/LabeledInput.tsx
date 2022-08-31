@@ -26,7 +26,7 @@ const LabeledInput: FC<Props> = ({
   ...rest
 }) => (
   <FormControl {...rest}>
-    <FormLabel {...labelProps}>{label}</FormLabel>
+    {label && <FormLabel {...labelProps}>{label}</FormLabel>}
     <Input {...inputProps} />
     {error && <FormErrorMessage>{error}</FormErrorMessage>}
   </FormControl>

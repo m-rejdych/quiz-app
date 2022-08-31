@@ -47,7 +47,7 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
       isOpen={isOpen}
       onClose={onClose}
       onCloseComplete={handleCloseComplete}
-      size="2xl"
+      size="xl"
     >
       <ModalOverlay />
       <ModalContent>
@@ -58,7 +58,7 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
             <LabeledInput
               isInvalid={isError}
               inputProps={{
-                name: 'title',
+                name: 'quiz-title',
                 value: title,
                 onChange: handleChangeTitle,
               }}
