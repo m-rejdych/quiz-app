@@ -11,15 +11,16 @@ import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
 interface Props {
   isOpen: boolean;
+  onAdd: (content: string) => void;
 }
 
-const AddAnswerButton: FC<Props> = ({ isOpen }) => {
+const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const clearup = (): void => {
-    setTitle('');
+    setContent('');
     setIsSubmitted(false);
   };
 
@@ -32,17 +33,18 @@ const AddAnswerButton: FC<Props> = ({ isOpen }) => {
     }
   }, [isOpen]);
 
-  const isError = isSubmitted && !title;
+  const isError = isSubmitted && !content;
 
-  const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>): void => {
-    setTitle(e.target.value);
+  const handleChangeContent = (e: ChangeEvent<HTMLInputElement>): void => {
+    setContent(e.target.value);
   };
 
   const handleSubmit = (): void => {
     setIsSubmitted(true);
 
-    if (!title) return;
+    if (!content) return;
 
+    onAdd(content);
     setIsAdding(false);
   };
 
@@ -52,10 +54,12 @@ const AddAnswerButton: FC<Props> = ({ isOpen }) => {
         <SlideFade in={isAdding} offsetY="20px" onAnimationComplete={clearup}>
           <Input
             isInvalid={isError}
-            name="answer-title"
-            placeholder={isError ? 'Answer title is requried' : 'Answer title'}
-            value={title}
-            onChange={handleChangeTitle}
+            name="answer-content"
+            placeholder={
+              isError ? 'Answer content is requried' : 'Answer content'
+            }
+            value={content}
+            onChange={handleChangeContent}
           />
         </SlideFade>
       </Box>
