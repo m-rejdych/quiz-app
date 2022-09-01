@@ -51,6 +51,7 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
   const handleCloseComplete = (): void => {
     setTitle('');
     setIsSubmitted(false);
+    setQuestions([]);
   };
 
   const handleAddQuestion = (question: Question): void => {

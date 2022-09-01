@@ -16,12 +16,14 @@ interface Props {
   answer: Answer;
   onCorrectSelect?: (content: string) => void;
   onDelete?: (content: string) => void;
+  withIsCorrectLabel?: boolean;
 }
 
 const AnswersListItem: FC<Props> = ({
   answer: { content, isCorrect },
   onCorrectSelect,
   onDelete,
+  withIsCorrectLabel,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -40,7 +42,6 @@ const AnswersListItem: FC<Props> = ({
       onAnimationComplete={handleAnimationComplete}
     >
       <ListItem
-        fontSize="lg"
         display="flex"
         alignItems="center"
         justifyContent={onCorrectSelect ? 'space-between' : 'flex-start'}
@@ -56,7 +57,14 @@ const AnswersListItem: FC<Props> = ({
               onClick={() => setIsDeleting(true)}
             />
           )}
-          <Text>{content}</Text>
+          <Text>
+            {content}
+            {withIsCorrectLabel && isCorrect && (
+              <Text as="span" fontSize="sm" color="gray.500">
+                {` (correct answer)`}
+              </Text>
+            )}
+          </Text>
         </HStack>
         {onCorrectSelect && (
           <Radio

@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 import type { Answer as PrismaAnswer } from '@prisma/client';
-import { UnorderedList } from '@chakra-ui/react';
+import { UnorderedList, type ListProps } from '@chakra-ui/react';
 
 import AnswersListItem from './listItem';
 
@@ -10,10 +10,12 @@ interface Props {
   answers: Answer[];
   onCorrectSelect?: (content: string) => void;
   onDelete?: (content: string) => void;
+  listProps?: ListProps;
+  withIsCorrectLabel?: boolean;
 }
 
-const AnswersList: FC<Props> = ({ answers, ...rest }) => (
-  <UnorderedList listStyleType="none" spacing={2}>
+const AnswersList: FC<Props> = ({ answers, listProps, ...rest }) => (
+  <UnorderedList listStyleType="none" spacing={3} {...listProps}>
     {answers.map((answer) => (
       <AnswersListItem
         key={`answer-${answer.content}`}
