@@ -1,4 +1,10 @@
-import { type FC, type ChangeEvent, useState, useEffect } from 'react';
+import {
+  type FC,
+  type ChangeEvent,
+  type KeyboardEvent,
+  useState,
+  useEffect,
+} from 'react';
 import {
   ButtonGroup,
   IconButton,
@@ -48,6 +54,10 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
     setIsAdding(false);
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key === 'Enter') handleSubmit();
+  };
+
   return (
     <Flex alignItems="center" justifyContent="flex-end" width="100%">
       <Box flex={1} mr={3}>
@@ -60,6 +70,7 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
             }
             value={content}
             onChange={handleChangeContent}
+            onKeyDown={handleKeyDown}
           />
         </SlideFade>
       </Box>

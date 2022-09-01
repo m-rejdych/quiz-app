@@ -13,6 +13,7 @@ import {
   Text,
   VStack,
   Flex,
+  Divider,
   useDisclosure,
 } from '@chakra-ui/react';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
@@ -58,7 +59,19 @@ const AddQuestionButton: FC = () => {
     if (answers.some(({ content: answerContent }) => content === answerContent))
       return;
 
-    setAnswers((prev) => [...prev, { content, isCorrect: false }]);
+    setAnswers((prev) => [
+      ...prev.map((answer) => ({ ...answer, isCorrect: false })),
+      { content, isCorrect: true },
+    ]);
+  };
+
+  const handleSelectCorrect = (content: string): void => {
+    setAnswers((prev) =>
+      prev.map((answer) => ({
+        ...answer,
+        isCorrect: answer.content === content,
+      })),
+    );
   };
 
   return (
@@ -96,7 +109,20 @@ const AddQuestionButton: FC = () => {
                 </Text>
                 <AddAnswerButton isOpen={isOpen} onAdd={handleAddAnswer} />
               </Flex>
-              <AnswersList answers={answers} />
+              {!!answers.length && (
+                <>
+                  <Divider />
+                  <Flex alignItems="center" justifyContent="space-between">
+                    <Text fontWeight="bold">Answer title</Text>
+                    <Text fontWeight="bold">Correct answer</Text>
+                  </Flex>
+                  <AnswersList
+                    answers={answers}
+                    onCorrectSelect={handleSelectCorrect}
+                    withRadio
+                  />
+                </>
+              )}
             </VStack>
           </VStack>
         </PopoverBody>
