@@ -25,7 +25,16 @@ import AnswersList from '../answer/list';
 
 type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
 
-const AddQuestionButton: FC = () => {
+interface Question {
+  title: string;
+  answers: Answer[];
+}
+
+interface Props {
+  onAdd: (question: Question) => void;
+}
+
+const AddQuestionButton: FC<Props> = ({ onAdd }) => {
   const [title, setTitle] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -37,14 +46,6 @@ const AddQuestionButton: FC = () => {
     setTitle(e.target.value);
   };
 
-  const handleSubmit = (): void => {
-    setIsSubmitted(true);
-
-    if (!title) return;
-
-    onClose();
-  };
-
   const handleClose = (): void => {
     onClose();
 
@@ -53,6 +54,15 @@ const AddQuestionButton: FC = () => {
       setIsSubmitted(false);
       setAnswers([]);
     }, 200);
+  };
+
+  const handleSubmit = (): void => {
+    setIsSubmitted(true);
+
+    if (!title) return;
+
+    onAdd({ title, answers });
+    handleClose();
   };
 
   const handleAddAnswer = (content: string): void => {

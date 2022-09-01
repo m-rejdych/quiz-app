@@ -1,35 +1,34 @@
 import { type FC, useState } from 'react';
 import type { Answer as PrismaAnswer } from '@prisma/client';
 import {
-  ListItem,
   SlideFade,
-  Radio,
-  Text,
+  ListItem,
   IconButton,
   HStack,
+  Text,
 } from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
 
 type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
 
-interface Props {
-  answer: Answer;
-  onCorrectSelect?: (content: string) => void;
-  onDelete?: (content: string) => void;
+interface Question {
+  title: string;
+  answers: Answer[];
 }
 
-const AnswersListItem: FC<Props> = ({
-  answer: { content, isCorrect },
-  onCorrectSelect,
-  onDelete,
-}) => {
+interface Props {
+  question: Question;
+  onDelete?: (title: string) => void;
+}
+
+const QuestionsListItem: FC<Props> = ({ question: { title }, onDelete }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAnimationComplete = (): void => {
     if (!isDeleting || !onDelete) return;
 
     setTimeout(() => {
-      onDelete(content);
+      onDelete(title);
     }, 150);
   };
 
@@ -39,36 +38,23 @@ const AnswersListItem: FC<Props> = ({
       offsetY="-20px"
       onAnimationComplete={handleAnimationComplete}
     >
-      <ListItem
-        fontSize="lg"
-        display="flex"
-        alignItems="center"
-        justifyContent={onCorrectSelect ? 'space-between' : 'flex-start'}
-      >
+      <ListItem>
         <HStack spacing={2}>
           {onDelete && (
             <IconButton
               size="sm"
               variant="outline"
               colorScheme="red"
+              aria-label="delete-question"
               icon={<DeleteIcon />}
-              aria-label="delete-answer"
               onClick={() => setIsDeleting(true)}
             />
           )}
-          <Text>{content}</Text>
+          <Text>{title}</Text>
         </HStack>
-        {onCorrectSelect && (
-          <Radio
-            value={content}
-            isChecked={isCorrect}
-            onChange={(e) => onCorrectSelect(e.target.value)}
-            colorScheme="teal"
-          />
-        )}
       </ListItem>
     </SlideFade>
   );
 };
 
-export default AnswersListItem;
+export default QuestionsListItem;

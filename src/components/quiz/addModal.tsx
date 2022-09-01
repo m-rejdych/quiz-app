@@ -1,4 +1,5 @@
 import { type FC, type ChangeEvent, useState } from 'react';
+import type { Answer as PrismaAnswer } from '@prisma/client';
 import {
   Button,
   Modal,
@@ -11,10 +12,19 @@ import {
   VStack,
   Text,
   Flex,
+  Divider,
 } from '@chakra-ui/react';
 
 import AddQuestionButton from '../question/addButton';
+import QuestionsList from '../question/list';
 import LabeledInput from '../common/labeledInput';
+
+type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
+
+interface Question {
+  title: string;
+  answers: Answer[];
+}
 
 interface Props {
   isOpen: boolean;
@@ -23,6 +33,7 @@ interface Props {
 
 const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState('');
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const isError = isSubmitted && !title;
@@ -40,6 +51,18 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
   const handleCloseComplete = (): void => {
     setTitle('');
     setIsSubmitted(false);
+  };
+
+  const handleAddQuestion = (question: Question): void => {
+    if (questions.some(({ title }) => title === question.title)) return;
+
+    setQuestions((prev) => [question, ...prev]);
+  };
+
+  const handleDeleteQuestion = (title: string): void => {
+    setQuestions((prev) =>
+      prev.filter(({ title: questionTitle }) => title !== questionTitle),
+    );
   };
 
   return (
@@ -66,12 +89,23 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
               labelProps={{ htmlFor: 'quiz-title' }}
               error={isError ? 'Quiz title is required.' : undefined}
             />
-            <Flex justifyContent="space-between" alignItems="center">
-              <Text fontSize="md" fontWeight="medium">
-                Questions
-              </Text>
-              <AddQuestionButton />
-            </Flex>
+            <VStack spacing={3} alignItems="stretch">
+              <Flex justifyContent="space-between" alignItems="center">
+                <Text fontSize="md" fontWeight="medium">
+                  Questions
+                </Text>
+                <AddQuestionButton onAdd={handleAddQuestion} />
+              </Flex>
+              {!!questions.length && (
+                <>
+                  <Divider />
+                  <QuestionsList
+                    questions={questions}
+                    onDelete={handleDeleteQuestion}
+                  />
+                </>
+              )}
+            </VStack>
           </VStack>
         </ModalBody>
         <ModalFooter>
