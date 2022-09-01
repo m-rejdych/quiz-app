@@ -63,6 +63,7 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
       <Box flex={1} mr={3}>
         <SlideFade in={isAdding} offsetY="20px" onAnimationComplete={clearup}>
           <Input
+            hidden={!isAdding}
             isInvalid={isError}
             name="answer-content"
             placeholder={

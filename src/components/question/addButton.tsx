@@ -60,8 +60,8 @@ const AddQuestionButton: FC = () => {
       return;
 
     setAnswers((prev) => [
-      ...prev.map((answer) => ({ ...answer, isCorrect: false })),
       { content, isCorrect: true },
+      ...prev.map((answer) => ({ ...answer, isCorrect: false })),
     ]);
   };
 
@@ -72,6 +72,18 @@ const AddQuestionButton: FC = () => {
         isCorrect: answer.content === content,
       })),
     );
+  };
+
+  const handleDelete = (content: string): void => {
+    const newAnswers = answers.filter(
+      ({ content: answerContent }) => content !== answerContent,
+    );
+
+    if (newAnswers.length && !newAnswers.some(({ isCorrect }) => isCorrect)) {
+      newAnswers[newAnswers.length - 1].isCorrect = true;
+    }
+
+    setAnswers(newAnswers);
   };
 
   return (
@@ -103,7 +115,11 @@ const AddQuestionButton: FC = () => {
               error={isError ? 'Question title is required.' : undefined}
             />
             <VStack spacing={3} alignItems="stretch">
-              <Flex justifyContent="space-between" alignItems="center">
+              <Flex
+                justifyContent="space-between"
+                alignItems="center"
+                minH={10}
+              >
                 <Text fontSize="md" fontWeight="medium" mr={3}>
                   Answers
                 </Text>
@@ -119,7 +135,7 @@ const AddQuestionButton: FC = () => {
                   <AnswersList
                     answers={answers}
                     onCorrectSelect={handleSelectCorrect}
-                    withRadio
+                    onDelete={handleDelete}
                   />
                 </>
               )}

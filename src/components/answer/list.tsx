@@ -1,53 +1,27 @@
-import type { FC } from 'react';
+import { type FC } from 'react';
 import type { Answer as PrismaAnswer } from '@prisma/client';
-import {
-  UnorderedList,
-  ListItem,
-  SlideFade,
-  Radio,
-  Text,
-} from '@chakra-ui/react';
+import { UnorderedList } from '@chakra-ui/react';
+
+import AnswersListItem from './listItem';
 
 type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
 
 interface Props {
   answers: Answer[];
-  withRadio?: boolean;
   onCorrectSelect?: (content: string) => void;
+  onDelete?: (content: string) => void;
 }
 
-const AnswersList: FC<Props> = ({ answers, onCorrectSelect, withRadio }) => {
-  const handleSelect = (content: string): void => {
-    if (!withRadio) return;
-
-    onCorrectSelect?.(content);
-  };
-
-  return (
-    <UnorderedList listStyleType="none" spacing={2}>
-      {answers.map(({ content, isCorrect }) => (
-        <SlideFade in offsetY="-20px" key={`answer-${content}`}>
-          <ListItem
-            key={`answer-${content}`}
-            fontSize="lg"
-            display="flex"
-            alignItems="center"
-            justifyContent={withRadio ? 'space-between' : 'flex-start'}
-          >
-            <Text>{content}</Text>
-            {withRadio && (
-              <Radio
-                value={content}
-                isChecked={isCorrect}
-                onChange={(e) => handleSelect(e.target.value)}
-                colorScheme="teal"
-              />
-            )}
-          </ListItem>
-        </SlideFade>
-      ))}
-    </UnorderedList>
-  );
-};
+const AnswersList: FC<Props> = ({ answers, ...rest }) => (
+  <UnorderedList listStyleType="none" spacing={2}>
+    {answers.map((answer) => (
+      <AnswersListItem
+        key={`answer-${answer.content}`}
+        answer={answer}
+        {...rest}
+      />
+    ))}
+  </UnorderedList>
+);
 
 export default AnswersList;
