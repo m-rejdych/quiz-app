@@ -39,6 +39,8 @@ model Quiz {
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   title String
   questions Question[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 }
 
 model Question {

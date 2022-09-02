@@ -107,6 +107,7 @@ const quizRouter = createRouter()
     resolve: async ({ ctx: { prisma, userId } }) => {
       const quizes = await prisma.quiz.findMany({
         where: { authorId: userId },
+        orderBy: { updatedAt: 'desc' },
       });
 
       return quizes;

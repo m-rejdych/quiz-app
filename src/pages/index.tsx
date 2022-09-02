@@ -3,11 +3,13 @@ import { VStack } from '@chakra-ui/react';
 
 import AddQuizButton from '../components/quiz/addButton';
 import QuizesList from '../components/quiz/list';
+import useAuthError from '../hooks/useAuthError';
 import { trpc } from '../utils/trpc';
 import { getPropsWithSession } from '../utils/session';
 
 const Home: NextPage = () => {
-  const { data } = trpc.useQuery(['quiz.list']);
+  const onError = useAuthError();
+  const { data } = trpc.useQuery(['quiz.list'], { onError });
 
   return (
     <VStack spacing={6} alignItems="flex-start">
