@@ -18,6 +18,8 @@ import {
 import AddQuestionButton from '../question/addButton';
 import QuestionsList from '../question/list';
 import LabeledInput from '../common/labeledInput';
+import useAuthError from '../../hooks/useAuthError';
+import { trpc } from '../../utils/trpc';
 
 type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
 
@@ -35,6 +37,8 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const onError = useAuthError();
+  const createQuiz = trpc.useMutation('quiz.create-quiz');
 
   const isError = isSubmitted && !title;
 
@@ -42,10 +46,21 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
     setTitle(e.target.value);
   };
 
-  const handleSubmit = (): void => {
+  const handleSubmit = async (): Promise<void> => {
     setIsSubmitted(true);
 
     if (!title) return;
+
+    try {
+      await createQuiz.mutateAsync({
+        title,
+        questions: questions.length ? questions : undefined,
+      });
+
+      onClose();
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
   };
 
   const handleCloseComplete = (): void => {
@@ -111,7 +126,11 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="teal" onClick={handleSubmit}>
+          <Button
+            colorScheme="teal"
+            onClick={handleSubmit}
+            isLoading={createQuiz.isLoading}
+          >
             Add
           </Button>
         </ModalFooter>

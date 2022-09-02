@@ -35,7 +35,7 @@ model Gender {
 
 model Quiz {
   id Int @id @default(autoincrement())
-  authorId Int @unique
+  authorId Int
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   title String
   questions Question[]
@@ -43,7 +43,7 @@ model Quiz {
 
 model Question {
   id Int @id @default(autoincrement())
-  quizId Int @unique
+  quizId Int
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
   title String
   answers Answer[]
