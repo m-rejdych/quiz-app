@@ -38,7 +38,12 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const onError = useAuthError();
-  const createQuiz = trpc.useMutation('quiz.create-quiz');
+  const { invalidateQueries } = trpc.useContext();
+  const createQuiz = trpc.useMutation('quiz.create-quiz', {
+    onSuccess: () => {
+      invalidateQueries(['quiz.list']);
+    },
+  });
 
   const isError = isSubmitted && !title;
 

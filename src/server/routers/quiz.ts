@@ -102,6 +102,15 @@ const quizRouter = createRouter()
 
       return quiz;
     },
+  })
+  .query('list', {
+    resolve: async ({ ctx: { prisma, userId } }) => {
+      const quizes = await prisma.quiz.findMany({
+        where: { authorId: userId },
+      });
+
+      return quizes;
+    },
   });
 
 export default quizRouter;
