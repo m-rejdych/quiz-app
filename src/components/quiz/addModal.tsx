@@ -54,10 +54,11 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
     setQuestions([]);
   };
 
-  const handleAddQuestion = (question: Question): void => {
-    if (questions.some(({ title }) => title === question.title)) return;
+  const handleAddQuestion = (question: Question): boolean => {
+    if (questions.some(({ title }) => title === question.title)) return false;
 
     setQuestions((prev) => [question, ...prev]);
+    return true;
   };
 
   const handleDeleteQuestion = (title: string): void => {

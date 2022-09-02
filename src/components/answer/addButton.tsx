@@ -17,17 +17,19 @@ import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
 interface Props {
   isOpen: boolean;
-  onAdd: (content: string) => void;
+  onAdd: (content: string) => boolean;
 }
 
 const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
   const [isAdding, setIsAdding] = useState(false);
+  const [isInputHidden, setIsInputHidden] = useState(true);
   const [content, setContent] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const clearup = (): void => {
     setContent('');
     setIsSubmitted(false);
+    setIsInputHidden(true);
   };
 
   useEffect(() => {
@@ -45,13 +47,23 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
     setContent(e.target.value);
   };
 
+  const handleAnimationCompleted = (): void => {
+    if (isAdding) return;
+
+    setTimeout(clearup, 150);
+  };
+
+  const handleStartAdding = (): void => {
+    setIsAdding(true);
+    setIsInputHidden(false);
+  };
+
   const handleSubmit = (): void => {
     setIsSubmitted(true);
 
     if (!content) return;
 
-    onAdd(content);
-    setIsAdding(false);
+    if (onAdd(content)) setIsAdding(false);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
@@ -61,9 +73,13 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
   return (
     <Flex alignItems="center" justifyContent="flex-end" width="100%">
       <Box flex={1} mr={3}>
-        <SlideFade in={isAdding} offsetY="20px" onAnimationComplete={clearup}>
+        <SlideFade
+          in={isAdding}
+          offsetY="20px"
+          onAnimationComplete={handleAnimationCompleted}
+        >
           <Input
-            hidden={!isAdding}
+            hidden={isInputHidden}
             isInvalid={isError}
             name="answer-content"
             placeholder={
@@ -96,7 +112,7 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
           icon={<AddIcon />}
           colorScheme="red"
           aria-label="add-answer"
-          onClick={() => setIsAdding(true)}
+          onClick={handleStartAdding}
         />
       )}
     </Flex>

@@ -43,6 +43,8 @@ const QuestionsListItem: FC<Props> = ({
   };
 
   const toggleAnswersList = (): void => {
+    if (!answers.length) return;
+
     if (isListIn) {
       setTimeout(() => {
         setHideList(true);
@@ -76,12 +78,14 @@ const QuestionsListItem: FC<Props> = ({
               )}
               <Text fontWeight="bold">{title}</Text>
             </HStack>
-            <IconButton
-              aria-label="toggle-answers-list"
-              size="sm"
-              icon={isListIn ? <ChevronUpIcon /> : <ChevronDownIcon />}
-              onClick={toggleAnswersList}
-            />
+            {!!answers.length && (
+              <IconButton
+                aria-label="toggle-answers-list"
+                size="sm"
+                icon={isListIn ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                onClick={toggleAnswersList}
+              />
+            )}
           </Flex>
           <Collapse in={isListIn}>
             <AnswersList

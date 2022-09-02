@@ -22,6 +22,7 @@ import type { Answer as PrismaAnswer } from '@prisma/client';
 import LabeledInput from '../common/labeledInput';
 import AddAnswerButton from '../answer/addButton';
 import AnswersList from '../answer/list';
+import { isErrored } from 'stream';
 
 type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
 
@@ -31,12 +32,13 @@ interface Question {
 }
 
 interface Props {
-  onAdd: (question: Question) => void;
+  onAdd: (question: Question) => boolean;
 }
 
 const AddQuestionButton: FC<Props> = ({ onAdd }) => {
   const [title, setTitle] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [alreadyExists, setAlreadyExists] = useState(false);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -44,6 +46,8 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
 
   const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>): void => {
     setTitle(e.target.value);
+
+    if (alreadyExists) setAlreadyExists(false);
   };
 
   const handleClose = (): void => {
@@ -52,6 +56,7 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
     setTimeout(() => {
       setTitle('');
       setIsSubmitted(false);
+      setAlreadyExists(false);
       setAnswers([]);
     }, 200);
   };
@@ -61,18 +66,20 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
 
     if (!title) return;
 
-    onAdd({ title, answers });
-    handleClose();
+    if (onAdd({ title, answers })) handleClose();
+    else setAlreadyExists(true);
   };
 
-  const handleAddAnswer = (content: string): void => {
+  const handleAddAnswer = (content: string): boolean => {
     if (answers.some(({ content: answerContent }) => content === answerContent))
-      return;
+      return false;
 
     setAnswers((prev) => [
       { content, isCorrect: true },
       ...prev.map((answer) => ({ ...answer, isCorrect: false })),
     ]);
+
+    return true;
   };
 
   const handleSelectCorrect = (content: string): void => {
@@ -96,6 +103,12 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
     setAnswers(newAnswers);
   };
 
+  const getError = (): string | undefined => {
+    if (isError) return 'Question title is required.';
+    if (alreadyExists) return 'Question with this title already exists.';
+    return undefined;
+  };
+
   return (
     <Popover isOpen={isOpen} onClose={handleClose} size="md">
       <PopoverTrigger>
@@ -114,7 +127,7 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
         <PopoverBody>
           <VStack spacing={6} alignItems="stretch">
             <LabeledInput
-              isInvalid={isError}
+              isInvalid={isError || alreadyExists}
               inputProps={{
                 name: 'question-title',
                 value: title,
@@ -122,7 +135,7 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
               }}
               label="Question title"
               labelProps={{ htmlFor: 'question-title' }}
-              error={isError ? 'Question title is required.' : undefined}
+              error={getError()}
             />
             <VStack spacing={3} alignItems="stretch">
               <Flex
