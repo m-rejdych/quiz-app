@@ -70,6 +70,30 @@ const questionRouter = createRouter()
 
       return newQuestion;
     },
+  })
+  .mutation('update', {
+    input: z.object({
+      id: z.number(),
+      question: z.object({
+        title: z.string().optional(),
+      }),
+    }),
+    resolve: async ({ ctx: { userId, prisma }, input: { id, question } }) => {
+      const matchedQuestion = await prisma.question.findUnique({
+        where: { id },
+        select: { quiz: { select: { authorId: true } } },
+      });
+      if (!matchedQuestion) throw new trpc.TRPCError({ code: 'NOT_FOUND' });
+      if (matchedQuestion.quiz.authorId !== userId)
+        throw new trpc.TRPCError({ code: 'FORBIDDEN' });
+
+      const updatedQuestion = await prisma.question.update({
+        where: { id },
+        data: question,
+      });
+
+      return updatedQuestion;
+    },
   });
 
 export default questionRouter;

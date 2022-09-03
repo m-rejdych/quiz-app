@@ -8,7 +8,7 @@ import useAuthError from '../../hooks/useAuthError';
 import { getPropsWithSession } from '../../utils/session';
 import { trpc } from '../../utils/trpc';
 import type {
-  DeleteHandlerPayload,
+  UpdateHandlerPayload,
   QuestionListItem,
 } from '../../types/question/list';
 
@@ -27,10 +27,13 @@ const Quiz: NextPage = () => {
   const addQuestion = trpc.useMutation('question.add', {
     onSuccess: invalidateQuizQueries,
   });
+  const updateQuestion = trpc.useMutation('question.update', {
+    onSuccess: invalidateQuizQueries,
+  });
 
   const handleDeleteQuestion = async ({
     id,
-  }: DeleteHandlerPayload): Promise<void> => {
+  }: UpdateHandlerPayload): Promise<void> => {
     if (!id) return;
 
     try {
@@ -59,6 +62,22 @@ const Quiz: NextPage = () => {
     }
   };
 
+  const handleEditTitle = async ({
+    title,
+    id,
+  }: UpdateHandlerPayload): Promise<void> => {
+    if (!id) return;
+
+    try {
+      await updateQuestion.mutateAsync({
+        id: id,
+        question: { title },
+      });
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
+  };
+
   return data ? (
     <VStack spacing={6} alignItems="stretch">
       <Flex alignItems="center" justifyContent="space-between">
@@ -75,6 +94,7 @@ const Quiz: NextPage = () => {
       <QuestionsList
         questions={data.questions}
         onDelete={handleDeleteQuestion}
+        onEditTitle={handleEditTitle}
       />
     </VStack>
   ) : null;

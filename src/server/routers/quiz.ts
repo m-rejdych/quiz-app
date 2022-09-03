@@ -75,7 +75,12 @@ const quizRouter = createRouter()
     resolve: async ({ ctx: { prisma, userId }, input }) => {
       const quiz = await prisma.quiz.findUnique({
         where: { id: input },
-        include: { questions: { include: { answers: true } } },
+        include: {
+          questions: {
+            include: { answers: true },
+            orderBy: { updatedAt: 'desc' },
+          },
+        },
       });
       if (!quiz) throw new trpc.TRPCError({ code: 'NOT_FOUND' });
       if (quiz.authorId !== userId)

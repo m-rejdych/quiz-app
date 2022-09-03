@@ -4,10 +4,11 @@ import {
   ButtonGroup,
   IconButton,
   Box,
+  type BoxProps,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 
-const Controls: FC = () => {
+const Controls: FC<BoxProps> = (props) => {
   const {
     isEditing,
     getEditButtonProps,
@@ -16,7 +17,7 @@ const Controls: FC = () => {
   } = useEditableControls();
 
   return isEditing ? (
-    <ButtonGroup justifyContent="center" size="sm">
+    <ButtonGroup justifyContent="center" size="sm" {...props}>
       <IconButton
         aria-label="submit"
         icon={<CheckIcon />}
@@ -29,7 +30,7 @@ const Controls: FC = () => {
       />
     </ButtonGroup>
   ) : (
-    <Box>
+    <Box {...props}>
       <IconButton
         aria-label="edit"
         size="sm"

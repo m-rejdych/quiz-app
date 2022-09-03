@@ -6,6 +6,7 @@ import {
   type EditableProps,
   type EditablePreviewProps,
   type EditableInputProps,
+  type BoxProps,
 } from '@chakra-ui/react';
 
 import Controls from './controls';
@@ -13,11 +14,13 @@ import Controls from './controls';
 interface Props extends EditableProps {
   previewProps?: EditablePreviewProps;
   inputProps?: EditableInputProps;
+  controlsProps?: BoxProps;
 }
 
 const EditableComponent: FC<Props> = ({
   previewProps,
   inputProps,
+  controlsProps,
   ...rest
 }) => (
   <Editable
@@ -29,7 +32,7 @@ const EditableComponent: FC<Props> = ({
   >
     <EditablePreview {...previewProps} />
     <EditableInput mr={4} {...inputProps} />
-    <Controls />
+    <Controls {...controlsProps} />
   </Editable>
 );
 

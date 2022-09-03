@@ -12,19 +12,22 @@ import {
 import { DeleteIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 
 import AnswersList from '../answer/list';
+import Editable from '../editable/editable';
 import type {
   QuestionListItem,
-  DeleteHandlerPayload,
+  UpdateHandlerPayload,
 } from '../../types/question/list';
 
 interface Props {
   question: QuestionListItem;
-  onDelete?: (data: DeleteHandlerPayload) => void;
+  onDelete?: (data: UpdateHandlerPayload) => void;
+  onEditTitle?: (data: UpdateHandlerPayload) => void | Promise<void>;
 }
 
 const QuestionsListItem: FC<Props> = ({
   question: { id, title, answers },
   onDelete,
+  onEditTitle,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isListIn, setIsListIn] = useState(false);
@@ -52,6 +55,12 @@ const QuestionsListItem: FC<Props> = ({
     setIsListIn((prev) => !prev);
   };
 
+  const handleEditTitle = async (newTitle: string): Promise<void> => {
+    if (title === newTitle) return;
+
+    await onEditTitle?.({ id, title: newTitle });
+  };
+
   return (
     <SlideFade
       in={!isDeleting}
@@ -61,7 +70,7 @@ const QuestionsListItem: FC<Props> = ({
       <ListItem>
         <VStack spacing={3} alignItems="stretch">
           <Flex justifyContent="space-between" alignItems="center">
-            <HStack spacing={2}>
+            <HStack spacing={2} flex={1}>
               {onDelete && (
                 <IconButton
                   size="sm"
@@ -72,7 +81,18 @@ const QuestionsListItem: FC<Props> = ({
                   onClick={() => setIsDeleting(true)}
                 />
               )}
-              <Text fontWeight="bold">{title}</Text>
+              {onEditTitle ? (
+                <Editable
+                  flex={1}
+                  previewProps={{ fontWeight: 'bold' }}
+                  controlsProps={{ mr: answers.length ? 2 : 0 }}
+                  onSubmit={handleEditTitle}
+                  defaultValue={title}
+                  isPreviewFocusable={false}
+                />
+              ) : (
+                <Text fontWeight="bold">{title}</Text>
+              )}
             </HStack>
             {!!answers.length && (
               <IconButton

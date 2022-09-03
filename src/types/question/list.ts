@@ -8,7 +8,7 @@ export interface QuestionListItem {
   title: string;
 }
 
-export interface DeleteHandlerPayload {
+export interface UpdateHandlerPayload {
   id?: number;
   title: string;
 }
