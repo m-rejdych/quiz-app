@@ -5,13 +5,15 @@ import authRouter from '../../../server/routers/auth';
 import profileRouter from '../../../server/routers/profile';
 import genderRouter from '../../../server/routers/gender';
 import quizRouter from '../../../server/routers/quiz';
+import questionRouter from '../../../server/routers/question';
 import { createContext } from '../../../server/context';
 
 const appRouter = createRouter()
   .merge('auth.', authRouter)
   .merge('profile.', profileRouter)
   .merge('gender.', genderRouter)
-  .merge('quiz.', quizRouter);
+  .merge('quiz.', quizRouter)
+  .merge('question.', questionRouter);
 
 export type AppRouter = typeof appRouter;
 

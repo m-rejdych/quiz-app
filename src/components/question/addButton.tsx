@@ -22,7 +22,6 @@ import type { Answer as PrismaAnswer } from '@prisma/client';
 import LabeledInput from '../common/labeledInput';
 import AddAnswerButton from '../answer/addButton';
 import AnswersList from '../answer/list';
-import { isErrored } from 'stream';
 
 type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
 
@@ -32,7 +31,7 @@ interface Question {
 }
 
 interface Props {
-  onAdd: (question: Question) => boolean;
+  onAdd: (question: Question) => boolean | Promise<boolean>;
 }
 
 const AddQuestionButton: FC<Props> = ({ onAdd }) => {
@@ -61,13 +60,14 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
     }, 200);
   };
 
-  const handleSubmit = (): void => {
+  const handleSubmit = async (): Promise<void> => {
     setIsSubmitted(true);
 
     if (!title) return;
 
-    if (onAdd({ title, answers })) handleClose();
-    else setAlreadyExists(true);
+    if (await onAdd({ title, answers })) {
+      handleClose();
+    } else setAlreadyExists(true);
   };
 
   const handleAddAnswer = (content: string): boolean => {

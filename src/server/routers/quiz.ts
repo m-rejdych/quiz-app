@@ -2,14 +2,7 @@ import * as trpc from '@trpc/server';
 import { z } from 'zod';
 
 import createRouter from '../createRouter';
-
-const isDuplicated =
-  <T extends object>(key: keyof T) =>
-  (item: T, index: number, self: T[]) =>
-    self.some(
-      (otherItem, otherIndex) =>
-        item[key] === otherItem[key] && index !== otherIndex,
-    );
+import { validateQuestionsOrThrow } from '../../utils/question/validation';
 
 const quizRouter = createRouter()
   .middleware(({ ctx, next }) => {
@@ -40,43 +33,7 @@ const quizRouter = createRouter()
       ctx: { prisma, userId },
       input: { title, questions },
     }) => {
-      if (questions) {
-        if (questions.some(isDuplicated('title'))) {
-          throw new trpc.TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Duplicated question titles.',
-          });
-        }
-
-        if (
-          questions.some(({ answers }) =>
-            answers?.some(isDuplicated('content')),
-          )
-        ) {
-          throw new trpc.TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Duplicated answer contents.',
-          });
-        }
-
-        questions.forEach(({ answers }) => {
-          if (!answers?.length) return;
-
-          let correctCount = 0;
-
-          for (const { isCorrect } of answers) {
-            if (isCorrect) correctCount++;
-            if (correctCount > 1) break;
-          }
-
-          if (correctCount !== 1) {
-            throw new trpc.TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'One answer has to be marked as correct.',
-            });
-          }
-        });
-      }
+      validateQuestionsOrThrow(questions);
 
       const quiz = await prisma.quiz.create({
         data: { title, authorId: userId },
@@ -111,6 +68,20 @@ const quizRouter = createRouter()
       });
 
       return quizes;
+    },
+  })
+  .query('get-by-id', {
+    input: z.number(),
+    resolve: async ({ ctx: { prisma, userId }, input }) => {
+      const quiz = await prisma.quiz.findUnique({
+        where: { id: input },
+        include: { questions: { include: { answers: true } } },
+      });
+      if (!quiz) throw new trpc.TRPCError({ code: 'NOT_FOUND' });
+      if (quiz.authorId !== userId)
+        throw new trpc.TRPCError({ code: 'FORBIDDEN' });
+
+      return quiz;
     },
   });
 

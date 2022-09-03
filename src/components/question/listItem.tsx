@@ -1,5 +1,4 @@
 import { type FC, useState } from 'react';
-import type { Answer as PrismaAnswer } from '@prisma/client';
 import {
   SlideFade,
   Collapse,
@@ -13,21 +12,18 @@ import {
 import { DeleteIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 
 import AnswersList from '../answer/list';
-
-type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
-
-interface Question {
-  title: string;
-  answers: Answer[];
-}
+import type {
+  QuestionListItem,
+  DeleteHandlerPayload,
+} from '../../types/question/list';
 
 interface Props {
-  question: Question;
-  onDelete?: (title: string) => void;
+  question: QuestionListItem;
+  onDelete?: (data: DeleteHandlerPayload) => void;
 }
 
 const QuestionsListItem: FC<Props> = ({
-  question: { title, answers },
+  question: { id, title, answers },
   onDelete,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -38,7 +34,7 @@ const QuestionsListItem: FC<Props> = ({
     if (!isDeleting || !onDelete) return;
 
     setTimeout(() => {
-      onDelete(title);
+      onDelete({ id, title });
     }, 150);
   };
 

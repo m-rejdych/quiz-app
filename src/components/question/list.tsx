@@ -1,19 +1,15 @@
 import type { FC } from 'react';
-import type { Answer as PrismaAnswer } from '@prisma/client';
 import { UnorderedList, type ListProps } from '@chakra-ui/react';
 
 import QuestionsListItem from './listItem';
-
-type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
-
-interface Question {
-  title: string;
-  answers: Answer[];
-}
+import type {
+  QuestionListItem,
+  DeleteHandlerPayload,
+} from '../../types/question/list';
 
 interface Props {
-  questions: Question[];
-  onDelete?: (title: string) => void;
+  questions: QuestionListItem[];
+  onDelete?: (data: DeleteHandlerPayload) => void;
   listProps?: ListProps;
 }
 

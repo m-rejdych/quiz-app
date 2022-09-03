@@ -1,5 +1,4 @@
 import { type FC, type ChangeEvent, useState } from 'react';
-import type { Answer as PrismaAnswer } from '@prisma/client';
 import {
   Button,
   Modal,
@@ -20,13 +19,10 @@ import QuestionsList from '../question/list';
 import LabeledInput from '../common/labeledInput';
 import useAuthError from '../../hooks/useAuthError';
 import { trpc } from '../../utils/trpc';
-
-type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
-
-interface Question {
-  title: string;
-  answers: Answer[];
-}
+import type {
+  QuestionListItem,
+  DeleteHandlerPayload,
+} from '../../types/question/list';
 
 interface Props {
   isOpen: boolean;
@@ -35,7 +31,7 @@ interface Props {
 
 const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState('');
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<QuestionListItem[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const onError = useAuthError();
   const { invalidateQueries } = trpc.useContext();
@@ -59,7 +55,12 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
     try {
       await createQuiz.mutateAsync({
         title,
-        questions: questions.length ? questions : undefined,
+        questions: questions.length
+          ? questions.map(({ answers, ...question }) => ({
+              ...question,
+              answers: answers.length ? answers : undefined,
+            }))
+          : undefined,
       });
 
       onClose();
@@ -74,14 +75,14 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
     setQuestions([]);
   };
 
-  const handleAddQuestion = (question: Question): boolean => {
+  const handleAddQuestion = (question: QuestionListItem): boolean => {
     if (questions.some(({ title }) => title === question.title)) return false;
 
     setQuestions((prev) => [question, ...prev]);
     return true;
   };
 
-  const handleDeleteQuestion = (title: string): void => {
+  const handleDeleteQuestion = ({ title }: DeleteHandlerPayload): void => {
     setQuestions((prev) =>
       prev.filter(({ title: questionTitle }) => title !== questionTitle),
     );
