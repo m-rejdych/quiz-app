@@ -28,6 +28,7 @@ interface Props {
     questionId: number,
   ) => (content: string) => boolean | Promise<boolean>;
   onDeleteAnswer?: (data: UpdateAnswerPayload) => void | Promise<void>;
+  onEditAnswerContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
 }
 
 const QuestionsListItem: FC<Props> = ({
@@ -36,6 +37,7 @@ const QuestionsListItem: FC<Props> = ({
   onEditTitle,
   onAddAnswer,
   onDeleteAnswer,
+  onEditAnswerContent,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isListIn, setIsListIn] = useState(false);
@@ -116,6 +118,7 @@ const QuestionsListItem: FC<Props> = ({
               answers={answers}
               listProps={{ hidden: hideList, listStyleType: 'unset' }}
               onDelete={onDeleteAnswer}
+              onEditContent={onEditAnswerContent}
             />
           </Collapse>
           {onAddAnswer && id && (

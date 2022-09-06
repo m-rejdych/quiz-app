@@ -11,6 +11,7 @@ interface Props {
   answers: Answer[];
   onCorrectSelect?: (content: string) => void;
   onDelete?: (data: UpdateAnswerPayload) => void | Promise<void>;
+  onEditContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   listProps?: ListProps;
   withIsCorrectLabel?: boolean;
 }

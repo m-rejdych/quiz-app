@@ -17,7 +17,7 @@ const Controls: FC<BoxProps> = (props) => {
   } = useEditableControls();
 
   return isEditing ? (
-    <ButtonGroup justifyContent="center" size="sm" {...props}>
+    <ButtonGroup justifyContent="center" size="sm" mx={4} {...props}>
       <IconButton
         aria-label="submit"
         icon={<CheckIcon />}
@@ -30,7 +30,7 @@ const Controls: FC<BoxProps> = (props) => {
       />
     </ButtonGroup>
   ) : (
-    <Box {...props}>
+    <Box mx={4} {...props}>
       <IconButton
         aria-label="edit"
         size="sm"

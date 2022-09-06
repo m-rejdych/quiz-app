@@ -10,7 +10,7 @@ const quizRouter = createRouter()
 
     return next({ ctx: { ...ctx, userId: ctx.userId } });
   })
-  .mutation('create-quiz', {
+  .mutation('create', {
     input: z.object({
       title: z.string(),
       questions: z
@@ -77,7 +77,7 @@ const quizRouter = createRouter()
         where: { id: input },
         include: {
           questions: {
-            include: { answers: true },
+            include: { answers: { orderBy: { updatedAt: 'desc' } } },
             orderBy: { updatedAt: 'desc' },
           },
         },

@@ -52,7 +52,7 @@ const answerRotuer = createRouter()
     input: z.object({
       id: z.number(),
       answer: z.object({
-        content: z.string().optional(),
+        content: z.string().min(1).optional(),
         isCorrect: z.boolean().optional(),
       }),
     }),
@@ -61,6 +61,7 @@ const answerRotuer = createRouter()
         where: { id },
         select: {
           isCorrect: true,
+          content: true,
           question: {
             select: { id: true, quiz: { select: { authorId: true } } },
           },
@@ -69,6 +70,21 @@ const answerRotuer = createRouter()
       if (!matchedAnswer) throw new trpc.TRPCError({ code: 'NOT_FOUND' });
       if (matchedAnswer.question.quiz.authorId !== userId)
         throw new trpc.TRPCError({ code: 'FORBIDDEN' });
+
+      if (answer.content) {
+        const sameContentAnswer = await prisma.answer.findFirst({
+          where: {
+            questionId: matchedAnswer.question.id,
+            content: answer.content,
+            NOT: { id },
+          },
+        });
+        if (sameContentAnswer)
+          throw new trpc.TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Answer of this content already exists.',
+          });
+      }
 
       const updatedAnswer = await prisma.answer.update({
         where: { id },

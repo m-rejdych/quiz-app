@@ -37,6 +37,9 @@ const Quiz: NextPage = () => {
   const deleteAnswer = trpc.useMutation('answer.delete', {
     onSuccess: invalidateQuizQueries,
   });
+  const updateAnswer = trpc.useMutation('answer.update', {
+    onSuccess: invalidateQuizQueries,
+  });
 
   const handleDeleteQuestion = async ({
     id,
@@ -100,11 +103,26 @@ const Quiz: NextPage = () => {
     }
   };
 
-  const handleDeleteAnswer = async ({ id }: UpdateAnswerPayload) => {
+  const handleDeleteAnswer = async ({
+    id,
+  }: UpdateAnswerPayload): Promise<void> => {
     if (!id) return;
 
     try {
       await deleteAnswer.mutateAsync(id);
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
+  };
+
+  const handleEditAnswerContent = async ({
+    id,
+    content,
+  }: UpdateAnswerPayload): Promise<void> => {
+    if (!id) return;
+
+    try {
+      await updateAnswer.mutateAsync({ id, answer: { content } });
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
     }
@@ -129,6 +147,7 @@ const Quiz: NextPage = () => {
         onEditTitle={handleEditTitle}
         onAddAnswer={handleAddAnswer}
         onDeleteAnswer={handleDeleteAnswer}
+        onEditAnswerContent={handleEditAnswerContent}
       />
     </VStack>
   ) : null;

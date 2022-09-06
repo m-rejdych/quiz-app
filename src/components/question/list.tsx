@@ -16,6 +16,7 @@ interface Props {
     questionId: number,
   ) => (content: string) => boolean | Promise<boolean>;
   onDeleteAnswer?: (data: UpdateAnswerPayload) => void | Promise<void>;
+  onEditAnswerContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   listProps?: ListProps;
 }
 

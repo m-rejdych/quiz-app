@@ -10,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
 
+import Editable from '../editable/editable';
 import type { UpdateAnswerPayload } from '../../types/answer/list';
 
 type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'> & { id?: number };
@@ -18,6 +19,7 @@ interface Props {
   answer: Answer;
   onCorrectSelect?: (content: string) => void;
   onDelete?: (data: UpdateAnswerPayload) => void | Promise<void>;
+  onEditContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   withIsCorrectLabel?: boolean;
 }
 
@@ -25,6 +27,7 @@ const AnswersListItem: FC<Props> = ({
   answer: { id, content, isCorrect },
   onCorrectSelect,
   onDelete,
+  onEditContent,
   withIsCorrectLabel,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -59,14 +62,32 @@ const AnswersListItem: FC<Props> = ({
               onClick={() => setIsDeleting(true)}
             />
           )}
-          <Text>
-            {content}
-            {withIsCorrectLabel && isCorrect && (
-              <Text as="span" fontSize="sm" color="gray.500">
-                {` (correct answer)`}
-              </Text>
-            )}
-          </Text>
+          {onEditContent ? (
+            <HStack spacing={2}>
+              <Editable
+                onSubmit={(newValue) =>
+                  onEditContent({ id, content: newValue })
+                }
+                defaultValue={content}
+                fontSize="sm"
+                isPreviewFocusable={false}
+              />
+              {withIsCorrectLabel && isCorrect && (
+                <Text as="span" fontSize="sm" color="gray.500">
+                  {` (correct answer)`}
+                </Text>
+              )}
+            </HStack>
+          ) : (
+            <Text>
+              {content}
+              {withIsCorrectLabel && isCorrect && (
+                <Text as="span" fontSize="sm" color="gray.500">
+                  {` (correct answer)`}
+                </Text>
+              )}
+            </Text>
+          )}
         </HStack>
         {onCorrectSelect && (
           <Radio
