@@ -1,12 +1,8 @@
 import type { Answer as PrismaAnswer } from '@prisma/client';
 
-type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
+import type UpdatePayload from '../common/UpdatePayload';
 
-type UpdatePayload<T extends string> = {
-  [K in T]: string;
-} & {
-  id?: number;
-};
+type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
 
 export interface QuestionListItem {
   id?: number;
@@ -14,4 +10,4 @@ export interface QuestionListItem {
   title: string;
 }
 
-export type UpdateQuestionHandlerPayload = UpdatePayload<'title'>;
+export type UpdateQuestionPayload = UpdatePayload<'title'>;

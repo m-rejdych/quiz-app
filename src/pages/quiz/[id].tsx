@@ -8,9 +8,10 @@ import useAuthError from '../../hooks/useAuthError';
 import { getPropsWithSession } from '../../utils/session';
 import { trpc } from '../../utils/trpc';
 import type {
-  UpdateQuestionHandlerPayload,
+  UpdateQuestionPayload,
   QuestionListItem,
 } from '../../types/question/list';
+import type { UpdateAnswerPayload } from '../../types/answer/list';
 
 const Quiz: NextPage = () => {
   const { invalidateQueries } = trpc.useContext();
@@ -21,22 +22,25 @@ const Quiz: NextPage = () => {
   };
   const onError = useAuthError();
   const { data } = trpc.useQuery(['quiz.get-by-id', quizId], { onError });
-  const deleteQuestion = trpc.useMutation('question.delete-question', {
-    onSuccess: invalidateQuizQueries,
-  });
   const addQuestion = trpc.useMutation('question.add', {
     onSuccess: invalidateQuizQueries,
   });
-  const addAnswer = trpc.useMutation('answer.add', {
+  const deleteQuestion = trpc.useMutation('question.delete', {
     onSuccess: invalidateQuizQueries,
   });
   const updateQuestion = trpc.useMutation('question.update', {
     onSuccess: invalidateQuizQueries,
   });
+  const addAnswer = trpc.useMutation('answer.add', {
+    onSuccess: invalidateQuizQueries,
+  });
+  const deleteAnswer = trpc.useMutation('answer.delete', {
+    onSuccess: invalidateQuizQueries,
+  });
 
   const handleDeleteQuestion = async ({
     id,
-  }: UpdateQuestionHandlerPayload): Promise<void> => {
+  }: UpdateQuestionPayload): Promise<void> => {
     if (!id) return;
 
     try {
@@ -83,7 +87,7 @@ const Quiz: NextPage = () => {
   const handleEditTitle = async ({
     title,
     id,
-  }: UpdateQuestionHandlerPayload): Promise<void> => {
+  }: UpdateQuestionPayload): Promise<void> => {
     if (!id) return;
 
     try {
@@ -91,6 +95,16 @@ const Quiz: NextPage = () => {
         id: id,
         question: { title },
       });
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
+  };
+
+  const handleDeleteAnswer = async ({ id }: UpdateAnswerPayload) => {
+    if (!id) return;
+
+    try {
+      await deleteAnswer.mutateAsync(id);
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
     }
@@ -114,6 +128,7 @@ const Quiz: NextPage = () => {
         onDelete={handleDeleteQuestion}
         onEditTitle={handleEditTitle}
         onAddAnswer={handleAddAnswer}
+        onDeleteAnswer={handleDeleteAnswer}
       />
     </VStack>
   ) : null;

@@ -92,7 +92,7 @@ const answerRotuer = createRouter()
       } else if (!updatedAnswer.isCorrect && matchedAnswer.isCorrect) {
         const [lastAnswer] = await prisma.answer.findMany({
           where: { questionId: updatedAnswer.questionId },
-          orderBy: { updatedAt: 'desc' },
+          orderBy: { createdAt: 'desc' },
           take: 1,
           select: { id: true },
         });
@@ -106,6 +106,42 @@ const answerRotuer = createRouter()
       }
 
       return updatedAnswer;
+    },
+  })
+  .mutation('delete', {
+    input: z.number(),
+    resolve: async ({ ctx: { prisma, userId }, input }) => {
+      const matchedAnswer = await prisma.answer.findUnique({
+        where: { id: input },
+        select: {
+          isCorrect: true,
+          question: {
+            select: { id: true, quiz: { select: { authorId: true } } },
+          },
+        },
+      });
+      if (!matchedAnswer) throw new trpc.TRPCError({ code: 'NOT_FOUND' });
+      if (matchedAnswer.question.quiz.authorId !== userId)
+        throw new trpc.TRPCError({ code: 'FORBIDDEN' });
+
+      await prisma.answer.delete({ where: { id: input } });
+
+      if (matchedAnswer.isCorrect) {
+        const [lastAnswer] = await prisma.answer.findMany({
+          where: { questionId: matchedAnswer.question.id },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { id: true },
+        });
+        if (lastAnswer) {
+          await prisma.answer.update({
+            where: { id: lastAnswer.id },
+            data: { isCorrect: true },
+          });
+        }
+      }
+
+      return true;
     },
   });
 

@@ -10,7 +10,7 @@ const questionRouter = createRouter()
 
     return next({ ctx: { ...ctx, userId: ctx.userId } });
   })
-  .mutation('delete-question', {
+  .mutation('delete', {
     input: z.number(),
     resolve: async ({ ctx: { prisma, userId }, input }) => {
       const question = await prisma.question.findUnique({

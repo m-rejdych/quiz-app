@@ -16,16 +16,18 @@ import AddAnswerButton from '../answer/addButton';
 import Editable from '../editable/editable';
 import type {
   QuestionListItem,
-  UpdateQuestionHandlerPayload,
+  UpdateQuestionPayload,
 } from '../../types/question/list';
+import type { UpdateAnswerPayload } from '../../types/answer/list';
 
 interface Props {
   question: QuestionListItem;
-  onDelete?: (data: UpdateQuestionHandlerPayload) => void | Promise<void>;
-  onEditTitle?: (data: UpdateQuestionHandlerPayload) => void | Promise<void>;
+  onDelete?: (data: UpdateQuestionPayload) => void | Promise<void>;
+  onEditTitle?: (data: UpdateQuestionPayload) => void | Promise<void>;
   onAddAnswer?: (
     questionId: number,
   ) => (content: string) => boolean | Promise<boolean>;
+  onDeleteAnswer?: (data: UpdateAnswerPayload) => void | Promise<void>;
 }
 
 const QuestionsListItem: FC<Props> = ({
@@ -33,6 +35,7 @@ const QuestionsListItem: FC<Props> = ({
   onDelete,
   onEditTitle,
   onAddAnswer,
+  onDeleteAnswer,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isListIn, setIsListIn] = useState(false);
@@ -112,6 +115,7 @@ const QuestionsListItem: FC<Props> = ({
               withIsCorrectLabel
               answers={answers}
               listProps={{ hidden: hideList, listStyleType: 'unset' }}
+              onDelete={onDeleteAnswer}
             />
           </Collapse>
           {onAddAnswer && id && (

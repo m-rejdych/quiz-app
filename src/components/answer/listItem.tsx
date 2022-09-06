@@ -10,17 +10,19 @@ import {
 } from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
 
-type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
+import type { UpdateAnswerPayload } from '../../types/answer/list';
+
+type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'> & { id?: number };
 
 interface Props {
   answer: Answer;
   onCorrectSelect?: (content: string) => void;
-  onDelete?: (content: string) => void;
+  onDelete?: (data: UpdateAnswerPayload) => void | Promise<void>;
   withIsCorrectLabel?: boolean;
 }
 
 const AnswersListItem: FC<Props> = ({
-  answer: { content, isCorrect },
+  answer: { id, content, isCorrect },
   onCorrectSelect,
   onDelete,
   withIsCorrectLabel,
@@ -31,7 +33,7 @@ const AnswersListItem: FC<Props> = ({
     if (!isDeleting || !onDelete) return;
 
     setTimeout(() => {
-      onDelete(content);
+      onDelete({ id, content });
     }, 150);
   };
 

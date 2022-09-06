@@ -21,7 +21,7 @@ import useAuthError from '../../hooks/useAuthError';
 import { trpc } from '../../utils/trpc';
 import type {
   QuestionListItem,
-  UpdateQuestionHandlerPayload,
+  UpdateQuestionPayload,
 } from '../../types/question/list';
 
 interface Props {
@@ -82,7 +82,7 @@ const AddQuizModal: FC<Props> = ({ isOpen, onClose }) => {
     return true;
   };
 
-  const handleDeleteQuestion = ({ title }: UpdateQuestionHandlerPayload): void => {
+  const handleDeleteQuestion = ({ title }: UpdateQuestionPayload): void => {
     setQuestions((prev) =>
       prev.filter(({ title: questionTitle }) => title !== questionTitle),
     );

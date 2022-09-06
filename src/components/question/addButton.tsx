@@ -22,8 +22,9 @@ import type { Answer as PrismaAnswer } from '@prisma/client';
 import LabeledInput from '../common/labeledInput';
 import AddAnswerButton from '../answer/addButton';
 import AnswersList from '../answer/list';
+import type { UpdateAnswerPayload } from '../../types/answer/list';
 
-type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'>;
+type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'> & { id?: number };
 
 interface Question {
   title: string;
@@ -91,7 +92,7 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
     );
   };
 
-  const handleDelete = (content: string): void => {
+  const handleDelete = ({ content }: UpdateAnswerPayload): void => {
     const newAnswers = answers.filter(
       ({ content: answerContent }) => content !== answerContent,
     );
