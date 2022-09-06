@@ -128,6 +128,16 @@ const Quiz: NextPage = () => {
     }
   };
 
+  const handleCorrectAnswerSelect = async ({ id }: UpdateAnswerPayload) => {
+    if (!id) return;
+
+    try {
+      await updateAnswer.mutateAsync({ id, answer: { isCorrect: true } });
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
+  };
+
   return data ? (
     <VStack spacing={6} alignItems="stretch">
       <Flex alignItems="center" justifyContent="space-between">
@@ -148,6 +158,7 @@ const Quiz: NextPage = () => {
         onAddAnswer={handleAddAnswer}
         onDeleteAnswer={handleDeleteAnswer}
         onEditAnswerContent={handleEditAnswerContent}
+        onCorrectAnswerSelect={handleCorrectAnswerSelect}
       />
     </VStack>
   ) : null;

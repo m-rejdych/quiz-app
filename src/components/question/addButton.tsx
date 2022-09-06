@@ -83,7 +83,7 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
     return true;
   };
 
-  const handleSelectCorrect = (content: string): void => {
+  const handleSelectCorrect = ({ content }: UpdateAnswerPayload): void => {
     setAnswers((prev) =>
       prev.map((answer) => ({
         ...answer,

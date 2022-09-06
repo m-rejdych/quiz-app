@@ -9,7 +9,7 @@ type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'> & { id?: number };
 
 interface Props {
   answers: Answer[];
-  onCorrectSelect?: (content: string) => void;
+  onCorrectSelect?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onDelete?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onEditContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   listProps?: ListProps;

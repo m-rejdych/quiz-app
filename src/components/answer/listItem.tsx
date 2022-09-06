@@ -17,7 +17,7 @@ type Answer = Pick<PrismaAnswer, 'content' | 'isCorrect'> & { id?: number };
 
 interface Props {
   answer: Answer;
-  onCorrectSelect?: (content: string) => void;
+  onCorrectSelect?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onDelete?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onEditContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   withIsCorrectLabel?: boolean;
@@ -38,6 +38,12 @@ const AnswersListItem: FC<Props> = ({
     setTimeout(() => {
       onDelete({ id, content });
     }, 150);
+  };
+
+  const handleEditContent = async (newContent: string): Promise<void> => {
+    if (newContent === content) return;
+
+    onEditContent?.({ id, content: newContent });
   };
 
   return (
@@ -65,9 +71,7 @@ const AnswersListItem: FC<Props> = ({
           {onEditContent ? (
             <HStack spacing={2}>
               <Editable
-                onSubmit={(newValue) =>
-                  onEditContent({ id, content: newValue })
-                }
+                onSubmit={handleEditContent}
                 defaultValue={content}
                 fontSize="sm"
                 isPreviewFocusable={false}
@@ -93,7 +97,7 @@ const AnswersListItem: FC<Props> = ({
           <Radio
             value={content}
             isChecked={isCorrect}
-            onChange={(e) => onCorrectSelect(e.target.value)}
+            onChange={(e) => onCorrectSelect({ id, content: e.target.value })}
             colorScheme="teal"
           />
         )}

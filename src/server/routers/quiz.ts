@@ -64,7 +64,7 @@ const quizRouter = createRouter()
     resolve: async ({ ctx: { prisma, userId } }) => {
       const quizes = await prisma.quiz.findMany({
         where: { authorId: userId },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { title: 'desc' },
       });
 
       return quizes;
@@ -77,8 +77,8 @@ const quizRouter = createRouter()
         where: { id: input },
         include: {
           questions: {
-            include: { answers: { orderBy: { updatedAt: 'desc' } } },
-            orderBy: { updatedAt: 'desc' },
+            include: { answers: { orderBy: { content: 'desc' } } },
+            orderBy: { title: 'desc' },
           },
         },
       });

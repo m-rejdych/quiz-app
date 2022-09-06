@@ -31,7 +31,7 @@ const EditableComponent: FC<Props> = ({
     {...rest}
   >
     <EditablePreview {...previewProps} />
-    <EditableInput mr={4} {...inputProps} />
+    <EditableInput {...inputProps} />
     <Controls {...controlsProps} />
   </Editable>
 );

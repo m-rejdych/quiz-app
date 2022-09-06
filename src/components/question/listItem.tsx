@@ -29,6 +29,7 @@ interface Props {
   ) => (content: string) => boolean | Promise<boolean>;
   onDeleteAnswer?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onEditAnswerContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
+  onCorrectAnswerSelect?: (data: UpdateAnswerPayload) => void | Promise<void>;
 }
 
 const QuestionsListItem: FC<Props> = ({
@@ -38,6 +39,7 @@ const QuestionsListItem: FC<Props> = ({
   onAddAnswer,
   onDeleteAnswer,
   onEditAnswerContent,
+  onCorrectAnswerSelect,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isListIn, setIsListIn] = useState(false);
@@ -71,6 +73,15 @@ const QuestionsListItem: FC<Props> = ({
     await onEditTitle?.({ id, title: newTitle });
   };
 
+  const handleCorrectAnswerSelect = async (
+    data: UpdateAnswerPayload,
+  ): Promise<void> => {
+    const correctAnswer = answers.find(({ isCorrect }) => isCorrect);
+    if (correctAnswer?.content === data.content) return;
+
+    await onCorrectAnswerSelect?.(data);
+  };
+
   return (
     <SlideFade
       in={!isDeleting}
@@ -79,8 +90,8 @@ const QuestionsListItem: FC<Props> = ({
     >
       <ListItem>
         <VStack spacing={3} alignItems="stretch">
-          <Flex alignItems="center">
-            <HStack spacing={2} flex={1}>
+          <Flex alignItems="center" justifyContent="space-between">
+            <HStack spacing={2}>
               {onDelete && (
                 <IconButton
                   size="sm"
@@ -93,7 +104,6 @@ const QuestionsListItem: FC<Props> = ({
               )}
               {onEditTitle ? (
                 <Editable
-                  flex={1}
                   previewProps={{ fontWeight: 'bold' }}
                   onSubmit={handleEditTitle}
                   defaultValue={title}
@@ -102,15 +112,15 @@ const QuestionsListItem: FC<Props> = ({
               ) : (
                 <Text fontWeight="bold">{title}</Text>
               )}
-              {!!answers.length && (
-                <IconButton
-                  aria-label="toggle-answers-list"
-                  size="sm"
-                  icon={isListIn ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                  onClick={toggleAnswersList}
-                />
-              )}
             </HStack>
+            {!!answers.length && (
+              <IconButton
+                aria-label="toggle-answers-list"
+                size="sm"
+                icon={isListIn ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                onClick={toggleAnswersList}
+              />
+            )}
           </Flex>
           <Collapse in={isListIn}>
             <AnswersList
@@ -119,6 +129,7 @@ const QuestionsListItem: FC<Props> = ({
               listProps={{ hidden: hideList, listStyleType: 'unset' }}
               onDelete={onDeleteAnswer}
               onEditContent={onEditAnswerContent}
+              onCorrectSelect={handleCorrectAnswerSelect}
             />
           </Collapse>
           {onAddAnswer && id && (
