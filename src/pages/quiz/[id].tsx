@@ -8,7 +8,7 @@ import useAuthError from '../../hooks/useAuthError';
 import { getPropsWithSession } from '../../utils/session';
 import { trpc } from '../../utils/trpc';
 import type {
-  UpdateHandlerPayload,
+  UpdateQuestionHandlerPayload,
   QuestionListItem,
 } from '../../types/question/list';
 
@@ -27,13 +27,16 @@ const Quiz: NextPage = () => {
   const addQuestion = trpc.useMutation('question.add', {
     onSuccess: invalidateQuizQueries,
   });
+  const addAnswer = trpc.useMutation('answer.add', {
+    onSuccess: invalidateQuizQueries,
+  });
   const updateQuestion = trpc.useMutation('question.update', {
     onSuccess: invalidateQuizQueries,
   });
 
   const handleDeleteQuestion = async ({
     id,
-  }: UpdateHandlerPayload): Promise<void> => {
+  }: UpdateQuestionHandlerPayload): Promise<void> => {
     if (!id) return;
 
     try {
@@ -62,10 +65,25 @@ const Quiz: NextPage = () => {
     }
   };
 
+  const handleAddAnswer =
+    (questionId: number) =>
+    async (content: string): Promise<boolean> => {
+      try {
+        await addAnswer.mutateAsync({
+          questionId,
+          answer: { content, isCorrect: false },
+        });
+        return true;
+      } catch (error) {
+        onError(error as Parameters<typeof onError>[0]);
+        return false;
+      }
+    };
+
   const handleEditTitle = async ({
     title,
     id,
-  }: UpdateHandlerPayload): Promise<void> => {
+  }: UpdateQuestionHandlerPayload): Promise<void> => {
     if (!id) return;
 
     try {
@@ -95,6 +113,7 @@ const Quiz: NextPage = () => {
         questions={data.questions}
         onDelete={handleDeleteQuestion}
         onEditTitle={handleEditTitle}
+        onAddAnswer={handleAddAnswer}
       />
     </VStack>
   ) : null;

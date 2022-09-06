@@ -59,4 +59,6 @@ model Answer {
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   content String
   isCorrect Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

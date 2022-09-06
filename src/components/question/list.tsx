@@ -4,13 +4,16 @@ import { UnorderedList, type ListProps } from '@chakra-ui/react';
 import QuestionsListItem from './listItem';
 import type {
   QuestionListItem,
-  UpdateHandlerPayload,
+  UpdateQuestionHandlerPayload,
 } from '../../types/question/list';
 
 interface Props {
   questions: QuestionListItem[];
-  onDelete?: (data: UpdateHandlerPayload) => void | Promise<void>;
-  onEditTitle?: (data: UpdateHandlerPayload) => void | Promise<void>;
+  onDelete?: (data: UpdateQuestionHandlerPayload) => void | Promise<void>;
+  onEditTitle?: (data: UpdateQuestionHandlerPayload) => void | Promise<void>;
+  onAddAnswer?: (
+    questionId: number,
+  ) => (content: string) => boolean | Promise<boolean>;
   listProps?: ListProps;
 }
 

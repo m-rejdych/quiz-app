@@ -146,7 +146,11 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
                 <Text fontSize="md" fontWeight="medium" mr={3}>
                   Answers
                 </Text>
-                <AddAnswerButton isOpen={isOpen} onAdd={handleAddAnswer} />
+                <AddAnswerButton
+                  isOpen={isOpen}
+                  onAdd={handleAddAnswer}
+                  width="100%"
+                />
               </Flex>
               {!!answers.length && (
                 <>

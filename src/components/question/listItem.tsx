@@ -12,22 +12,27 @@ import {
 import { DeleteIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 
 import AnswersList from '../answer/list';
+import AddAnswerButton from '../answer/addButton';
 import Editable from '../editable/editable';
 import type {
   QuestionListItem,
-  UpdateHandlerPayload,
+  UpdateQuestionHandlerPayload,
 } from '../../types/question/list';
 
 interface Props {
   question: QuestionListItem;
-  onDelete?: (data: UpdateHandlerPayload) => void;
-  onEditTitle?: (data: UpdateHandlerPayload) => void | Promise<void>;
+  onDelete?: (data: UpdateQuestionHandlerPayload) => void | Promise<void>;
+  onEditTitle?: (data: UpdateQuestionHandlerPayload) => void | Promise<void>;
+  onAddAnswer?: (
+    questionId: number,
+  ) => (content: string) => boolean | Promise<boolean>;
 }
 
 const QuestionsListItem: FC<Props> = ({
   question: { id, title, answers },
   onDelete,
   onEditTitle,
+  onAddAnswer,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isListIn, setIsListIn] = useState(false);
@@ -69,7 +74,7 @@ const QuestionsListItem: FC<Props> = ({
     >
       <ListItem>
         <VStack spacing={3} alignItems="stretch">
-          <Flex justifyContent="space-between" alignItems="center">
+          <Flex alignItems="center">
             <HStack spacing={2} flex={1}>
               {onDelete && (
                 <IconButton
@@ -85,7 +90,6 @@ const QuestionsListItem: FC<Props> = ({
                 <Editable
                   flex={1}
                   previewProps={{ fontWeight: 'bold' }}
-                  controlsProps={{ mr: answers.length ? 2 : 0 }}
                   onSubmit={handleEditTitle}
                   defaultValue={title}
                   isPreviewFocusable={false}
@@ -93,15 +97,15 @@ const QuestionsListItem: FC<Props> = ({
               ) : (
                 <Text fontWeight="bold">{title}</Text>
               )}
+              {!!answers.length && (
+                <IconButton
+                  aria-label="toggle-answers-list"
+                  size="sm"
+                  icon={isListIn ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                  onClick={toggleAnswersList}
+                />
+              )}
             </HStack>
-            {!!answers.length && (
-              <IconButton
-                aria-label="toggle-answers-list"
-                size="sm"
-                icon={isListIn ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                onClick={toggleAnswersList}
-              />
-            )}
           </Flex>
           <Collapse in={isListIn}>
             <AnswersList
@@ -110,6 +114,14 @@ const QuestionsListItem: FC<Props> = ({
               listProps={{ hidden: hideList, listStyleType: 'unset' }}
             />
           </Collapse>
+          {onAddAnswer && id && (
+            <Flex alignItems="center" my={3} minH={10}>
+              <Text mr={2} fontWeight="bold">
+                Add answer
+              </Text>
+              <AddAnswerButton isOpen onAdd={onAddAnswer(id)} />
+            </Flex>
+          )}
         </VStack>
       </ListItem>
     </SlideFade>

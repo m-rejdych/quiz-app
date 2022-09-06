@@ -12,15 +12,16 @@ import {
   Input,
   SlideFade,
   Box,
+  type FlexProps,
 } from '@chakra-ui/react';
 import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
-interface Props {
+interface Props extends FlexProps {
   isOpen: boolean;
-  onAdd: (content: string) => boolean;
+  onAdd: (content: string) => boolean | Promise<boolean>;
 }
 
-const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
+const AddAnswerButton: FC<Props> = ({ isOpen, onAdd, ...rest }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [isInputHidden, setIsInputHidden] = useState(true);
   const [content, setContent] = useState('');
@@ -58,12 +59,12 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
     setIsInputHidden(false);
   };
 
-  const handleSubmit = (): void => {
+  const handleSubmit = async (): Promise<void> => {
     setIsSubmitted(true);
 
     if (!content) return;
 
-    if (onAdd(content)) setIsAdding(false);
+    if (await onAdd(content)) setIsAdding(false);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
@@ -71,7 +72,7 @@ const AddAnswerButton: FC<Props> = ({ isOpen, onAdd }) => {
   };
 
   return (
-    <Flex alignItems="center" justifyContent="flex-end" width="100%">
+    <Flex alignItems="center" {...rest}>
       <Box flex={1} mr={3}>
         <SlideFade
           in={isAdding}
