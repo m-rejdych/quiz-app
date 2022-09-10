@@ -1,4 +1,4 @@
-import type { GetServerSidePropsContext, GetServerSideProps } from 'next';
+import type { GetServerSidePropsContext, GetServerSideProps, NextApiRequest, NextApiResponse } from 'next';
 import type { Session } from 'next-auth';
 import { unstable_getServerSession } from 'next-auth';
 
@@ -9,18 +9,23 @@ interface SessionProps {
   session: Session;
 }
 
-interface GetPropsWithSessionOptions {
+interface GetPropsWithSessionOpts {
   callbackUrl?: string;
 }
 
+interface GetServerSessionOpts {
+  req: GetServerSidePropsContext['req'] | NextApiRequest;
+  res: GetServerSidePropsContext['res'] | NextApiResponse;
+}
+
 type GetPropsWithSession = (
-  options?: GetPropsWithSessionOptions,
+  options?: GetPropsWithSessionOpts,
 ) => GetServerSideProps<SessionProps>;
 
 export const getServerSession = async ({
   req,
   res,
-}: GetServerSidePropsContext): Promise<
+}: GetServerSessionOpts): Promise<
   ReturnType<typeof unstable_getServerSession>
 > => {
   const session = await unstable_getServerSession(req, res, authOptions);

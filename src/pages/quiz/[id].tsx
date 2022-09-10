@@ -1,6 +1,6 @@
-import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { VStack, Flex, Text, Divider, Button } from '@chakra-ui/react';
+import type { NextPage } from 'next';
 
 import QuestionsList from '../../components/question/list';
 import AddQuestionButton from '../../components/question/addButton';
