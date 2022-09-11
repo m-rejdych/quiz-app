@@ -1,17 +1,18 @@
-import { useRouter } from 'next/router';
 import { VStack, Flex, Text, Divider, Button } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
 import type { NextPage } from 'next';
 
-import QuestionsList from '../../components/question/list';
-import AddQuestionButton from '../../components/question/addButton';
-import useAuthError from '../../hooks/useAuthError';
-import { getPropsWithSession } from '../../utils/session';
-import { trpc } from '../../utils/trpc';
+import QuestionsList from '../../../components/question/list';
+import AddQuestionButton from '../../../components/question/addButton';
+import useAuthError from '../../../hooks/useAuthError';
+import { getPropsWithSession } from '../../../utils/session';
+import { trpc } from '../../../utils/trpc';
+import { generateCode } from '../../../utils/game';
 import type {
   UpdateQuestionPayload,
   QuestionListItem,
-} from '../../types/question/list';
-import type { UpdateAnswerPayload } from '../../types/answer/list';
+} from '../../../types/question/list';
+import type { UpdateAnswerPayload } from '../../../types/answer/list';
 
 const Quiz: NextPage = () => {
   const { invalidateQueries } = trpc.useContext();
@@ -40,6 +41,11 @@ const Quiz: NextPage = () => {
   const updateAnswer = trpc.useMutation('answer.update', {
     onSuccess: invalidateQuizQueries,
   });
+  const router = useRouter();
+
+  const canStart =
+    !!data?.questions.length &&
+    data.questions.some(({ answers }) => answers.length >= 2);
 
   const handleDeleteQuestion = async ({
     id,
@@ -138,13 +144,22 @@ const Quiz: NextPage = () => {
     }
   };
 
+  const handleStartQuiz = async (): Promise<void> => {
+    if (!canStart) return;
+
+    const { id } = router.query;
+    const code = generateCode();
+
+    await router.push(`/quiz/${id}/game/${code}`);
+  };
+
   return data ? (
     <VStack spacing={6} alignItems="stretch">
       <Flex alignItems="center" justifyContent="space-between">
         <Text fontSize="2xl" fontWeight="bold">
           {data.title}
         </Text>
-        <Button colorScheme="teal">Start quiz</Button>
+        <Button isDisabled={!canStart} colorScheme="teal" onClick={handleStartQuiz}>Start quiz</Button>
       </Flex>
       <Divider />
       <Flex alignItems="center" justifyContent="space-between">
