@@ -7,6 +7,7 @@ import genderRouter from '../../../server/routers/gender';
 import quizRouter from '../../../server/routers/quiz';
 import questionRouter from '../../../server/routers/question';
 import answerRouter from '../../../server/routers/answer';
+import gameRouter from '../../../server/routers/game';
 import { createContext } from '../../../server/context';
 
 const appRouter = createRouter()
@@ -15,7 +16,8 @@ const appRouter = createRouter()
   .merge('gender.', genderRouter)
   .merge('quiz.', quizRouter)
   .merge('question.', questionRouter)
-  .merge('answer.', answerRouter);
+  .merge('answer.', answerRouter)
+  .merge('game.', gameRouter);
 
 export type AppRouter = typeof appRouter;
 

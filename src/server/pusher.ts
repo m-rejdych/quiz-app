@@ -13,5 +13,3 @@ export const pusher =
   });
 
 if (!__prod__) global.pusher = pusher;
-
-export default pusher;

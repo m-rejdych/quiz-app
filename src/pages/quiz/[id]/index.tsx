@@ -7,7 +7,6 @@ import AddQuestionButton from '../../../components/question/addButton';
 import useAuthError from '../../../hooks/useAuthError';
 import { getPropsWithSession } from '../../../utils/session';
 import { trpc } from '../../../utils/trpc';
-import { generateCode } from '../../../utils/game';
 import type {
   UpdateQuestionPayload,
   QuestionListItem,
@@ -41,6 +40,7 @@ const Quiz: NextPage = () => {
   const updateAnswer = trpc.useMutation('answer.update', {
     onSuccess: invalidateQuizQueries,
   });
+  const generateGameCode = trpc.useMutation('game.generate-code');
   const router = useRouter();
 
   const canStart =
@@ -146,11 +146,14 @@ const Quiz: NextPage = () => {
 
   const handleStartQuiz = async (): Promise<void> => {
     if (!canStart) return;
-
     const { id } = router.query;
-    const code = generateCode();
 
-    await router.push(`/quiz/${id}/game/${code}`);
+    try {
+      const code = await generateGameCode.mutateAsync();
+      await router.push(`/quiz/${id}/game/${code}`);
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
   };
 
   return data ? (
@@ -159,7 +162,14 @@ const Quiz: NextPage = () => {
         <Text fontSize="2xl" fontWeight="bold">
           {data.title}
         </Text>
-        <Button isDisabled={!canStart} colorScheme="teal" onClick={handleStartQuiz}>Start quiz</Button>
+        <Button
+          isDisabled={!canStart}
+          isLoading={generateGameCode.isLoading}
+          colorScheme="teal"
+          onClick={handleStartQuiz}
+        >
+          Start quiz
+        </Button>
       </Flex>
       <Divider />
       <Flex alignItems="center" justifyContent="space-between">
