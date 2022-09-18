@@ -1,7 +1,7 @@
 import * as trpc from '@trpc/server';
 
 import createRouter from '../createRouter';
-import { generateCode } from '../../utils/game';
+import GameState from '../../models/state/game';
 
 const gameRouter = createRouter()
   .middleware(({ ctx, next }) => {
@@ -11,7 +11,7 @@ const gameRouter = createRouter()
   })
   .mutation('generate-code', {
     resolve: () => {
-      const code = generateCode();
+      const code = GameState.generateCode();
 
       return code;
     },
