@@ -4,7 +4,7 @@ import type Pusher from 'pusher';
 
 import State from './state';
 import PlayerState, { type InitPlayerState } from './player';
-import { Stage } from '../../types/game/events';
+import { GameEvent, Stage } from '../../types/game/events';
 
 type Quiz = Prisma.QuizGetPayload<{
   include: {
@@ -56,6 +56,10 @@ export default class GameState extends State<IGameState> {
     this.set('gameStage', Stage.Starting);
     this.set('gameStartCountdown', GAME_START_COUNTDOWN);
 
+    this.broadcast(GameEvent.StartGame, {
+      gameStartCountdown: this.get('gameStartCountdown'),
+    });
+
     this.countdownStartGame();
   }
 
@@ -85,13 +89,19 @@ export default class GameState extends State<IGameState> {
     return true;
   }
 
-  private finishGame() {}
+  private finishGame(): void {
+    this.broadcast(GameEvent.FinishGame, {});
+  }
 
   private startQuestion(): void {
     const { questions } = this.get('quiz');
     if (!questions[this.get('currentQuestionIndex') + 1]) {
       return this.finishGame();
     }
+
+    this.broadcast(GameEvent.StartQuestion, {
+      questionStartCountdown: this.get('questionStartCountdown'),
+    });
 
     this.set('currentQuestionIndex', (prev) => prev + 1);
     this.set('questionStage', Stage.Starting);
@@ -105,7 +115,15 @@ export default class GameState extends State<IGameState> {
 
     if (currentCountdown) {
       setTimeout(() => {
+        const currentQuestion =
+          this.get('quiz').questions[this.get('currentQuestionIndex')];
+
         this.set('questionCountdown', (prev) => Math.max(0, prev - 1));
+        this.broadcast(GameEvent.QuestionLoop, {
+          currentQuestion,
+          questionCountdown: this.get('questionCountdown'),
+        });
+
         this.questionLoop();
       }, 1000);
     } else {
@@ -116,6 +134,8 @@ export default class GameState extends State<IGameState> {
   }
 
   private finishQuestion(): void {
+    this.broadcast(GameEvent.FinishQuestion, {});
+
     setTimeout(() => {
       this.set('questionStage', Stage.Started);
       this.startQuestion();
@@ -128,6 +148,9 @@ export default class GameState extends State<IGameState> {
     if (currentCountdown) {
       setTimeout(() => {
         this.set('gameStartCountdown', (prev) => Math.max(0, prev - 1));
+        this.broadcast(GameEvent.CountdownStartGame, {
+          gameStartCountdown: this.get('gameStartCountdown'),
+        });
         this.countdownStartGame();
       }, 1000);
     } else {
@@ -143,6 +166,9 @@ export default class GameState extends State<IGameState> {
     if (currentCountdown) {
       setTimeout(() => {
         this.set('questionStartCountdown', (prev) => Math.max(0, prev - 1));
+        this.broadcast(GameEvent.CountdownStartQuestion, {
+          questionStartCountdown: this.get('questionStartCountdown'),
+        });
         this.countdownStartQuestion();
       }, 1000);
     } else {
@@ -150,6 +176,11 @@ export default class GameState extends State<IGameState> {
       this.set('questionStartCountdown', QUESTION_START_COUNTDOWN);
       this.questionLoop();
     }
+  }
+
+  private broadcast<T>(event: GameEvent, data: T): void {
+    const code = this.get('code');
+    this.get('pusher').trigger(`presence-${code}`, event, data);
   }
 
   static generateCode(length = 5): string {
