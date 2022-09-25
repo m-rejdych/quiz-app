@@ -40,7 +40,7 @@ const Quiz: NextPage = () => {
   const updateAnswer = trpc.useMutation('answer.update', {
     onSuccess: invalidateQuizQueries,
   });
-  const generateGameCode = trpc.useMutation('game.generate-code');
+  const createGame = trpc.useMutation('game.create');
   const router = useRouter();
 
   const canStart =
@@ -144,12 +144,14 @@ const Quiz: NextPage = () => {
     }
   };
 
-  const handleStartQuiz = async (): Promise<void> => {
+  const handleStartGame = async (): Promise<void> => {
     if (!canStart) return;
     const { id } = router.query;
 
     try {
-      const code = await generateGameCode.mutateAsync();
+      const { code } = await createGame.mutateAsync({
+        quizId: parseInt(id as string, 10),
+      });
       await router.push(`/quiz/${id}/game/${code}`);
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
@@ -164,9 +166,9 @@ const Quiz: NextPage = () => {
         </Text>
         <Button
           isDisabled={!canStart}
-          isLoading={generateGameCode.isLoading}
+          isLoading={createGame.isLoading}
           colorScheme="teal"
-          onClick={handleStartQuiz}
+          onClick={handleStartGame}
         >
           Start quiz
         </Button>

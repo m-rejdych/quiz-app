@@ -1,4 +1,10 @@
-import type { GetServerSidePropsContext, GetServerSideProps, NextApiRequest, NextApiResponse } from 'next';
+import type {
+  GetServerSidePropsContext,
+  GetServerSideProps,
+  GetServerSidePropsResult,
+  NextApiRequest,
+  NextApiResponse,
+} from 'next';
 import type { Session } from 'next-auth';
 import { unstable_getServerSession } from 'next-auth';
 
@@ -11,6 +17,9 @@ interface SessionProps {
 
 interface GetPropsWithSessionOpts {
   callbackUrl?: string;
+  getServerSidePropsFn?: <T extends object>(
+    ctx: GetServerSidePropsContext,
+  ) => GetServerSidePropsResult<T> | Promise<GetServerSidePropsResult<T>>;
 }
 
 interface GetServerSessionOpts {
@@ -36,7 +45,7 @@ export const getServerSession = async ({
 export const getPropsWithSession: GetPropsWithSession =
   (options = {}) =>
   async (ctx) => {
-    const { callbackUrl: callbackUrlOpt } = options;
+    const { callbackUrl: callbackUrlOpt, getServerSidePropsFn } = options;
     const callbackUrl = callbackUrlOpt ?? ctx.resolvedUrl;
 
     try {
@@ -52,7 +61,15 @@ export const getPropsWithSession: GetPropsWithSession =
         };
       }
 
-      return { props: { session: replaceUndefined(session, null) } };
+      const result = await getServerSidePropsFn?.(ctx);
+      if (result && ('redirect' in result || 'notFound' in result)) {
+        return result;
+      }
+
+      return {
+        ...result,
+        props: { ...result?.props, session: replaceUndefined(session, null) },
+      };
     } catch (error) {
       return {
         redirect: {

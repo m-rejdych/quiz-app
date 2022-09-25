@@ -13,7 +13,7 @@ const BASE_STATE: IAppState = {
   games: {},
 };
 
-export class AppState extends State<IAppState> {
+export default class AppState extends State<IAppState> {
   constructor() {
     super(BASE_STATE);
   }
@@ -22,23 +22,23 @@ export class AppState extends State<IAppState> {
     return this.get('games')[id];
   }
 
-  addGame(id: string, state: InitGameState): GameState {
-    if (this.getGame(id))
+  addGame(code: string, state: InitGameState): GameState {
+    if (this.getGame(code))
       throw new trpc.TRPCError({
         code: 'BAD_REQUEST',
         message: 'Game with this code already exists.',
       });
 
     const game = new GameState(state);
-    this.set('games', (games) => ({ ...games, [id]: game }));
+    this.set('games', (games) => ({ ...games, [code]: game }));
     return game;
   }
 
-  removeGame(id: keyof Games): boolean {
+  removeGame(code: keyof Games): boolean {
     const currentGames = { ...this.get('games') };
-    if (!(id in currentGames)) return false;
+    if (!(code in currentGames)) return false;
 
-    delete currentGames[id];
+    delete currentGames[code];
     this.set('games', currentGames);
     return true;
   }

@@ -2,6 +2,10 @@ type SetStateCb<T extends object, U extends keyof T> = (
   prevState: T[U],
 ) => T[U];
 
+interface GetReadonlyStateOpts<T extends object, U extends keyof T> {
+  exclude?: U | U[];
+}
+
 export default class State<T extends object> {
   constructor(private state: T) {}
 
@@ -18,5 +22,24 @@ export default class State<T extends object> {
 
   protected get<U extends keyof T>(key: U): T[U] {
     return this.state[key];
+  }
+
+  getReadonlyState<U extends keyof T>({
+    exclude,
+  }: GetReadonlyStateOpts<T, U> = {}): Readonly<Partial<T>> {
+    if (exclude) {
+      return Object.entries(this.state)
+        .filter(([key]) =>
+          Array.isArray(exclude)
+            ? !exclude.includes(key as U)
+            : key !== exclude,
+        )
+        .reduce(
+          (acc, [key, value]) => ({ ...acc, [key]: value }),
+          {} as Partial<T>,
+        );
+    }
+
+    return this.state;
   }
 }
