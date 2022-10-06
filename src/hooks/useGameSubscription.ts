@@ -1,7 +1,26 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Pusher, { type PresenceChannel } from 'pusher-js';
 
-const useGameSubscription = (code: string): void => {
+interface MemberInfo {
+  email: string;
+  image: null;
+  name: string;
+}
+
+interface Member {
+  id: string;
+  info: MemberInfo;
+}
+
+type Members = Record<string, MemberInfo>;
+
+type UseGameSubscription = (code: string) => {
+  members: Members;
+};
+
+const useGameSubscription: UseGameSubscription = (code) => {
+  const [members, setMembers] = useState<Members>({});
+
   const channelName = `presence-${code}`;
 
   useEffect(() => {
@@ -15,12 +34,20 @@ const useGameSubscription = (code: string): void => {
     });
 
     const channel = pusher.subscribe(channelName) as PresenceChannel;
+    setMembers(channel.members.members);
 
-    channel.bind('pusher:member_added', (data: any) =>
-      console.log('added', data),
-    );
+    channel.bind('pusher:member_added', ({ id, info }: Member) => {
+      setMembers((prev) => ({ ...prev, [id]: info }));
+    });
 
-    channel.bind('pusher:member_removed', (data: any) => console.log('removed', data));
+    channel.bind('pusher:member_removed', ({ id }: Member) => {
+      setMembers((prev) => {
+        const temp = { ...prev };
+        delete temp[id];
+
+        return temp;
+      });
+    });
 
     return () => {
       channel.unbind_all();
@@ -29,6 +56,8 @@ const useGameSubscription = (code: string): void => {
       pusher.disconnect();
     };
   }, []);
+
+  return { members };
 };
 
 export default useGameSubscription;

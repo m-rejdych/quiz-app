@@ -64,39 +64,37 @@ const AuthContainer: FC<Props> = ({
   };
 
   return (
-    <>
-      <Center height="100vh">
-        <Box
-          bgColor="blackAlpha.400"
-          borderRadius="md"
-          p={6}
-          w={500}
-          maxW="90vw"
-          boxShadow="lg"
-          position="relative"
-        >
-          {children}
-          {renderLink()}
-          <Fade in={open} onAnimationEnd={onAnimationEnd}>
-            <Alert
-              status="error"
-              position="absolute"
-              top="calc(100% + 64px)"
-              left="50%"
-              transform="translateX(-50%)"
-              w="auto"
-              maxW="90vw"
-              boxShadow="2xl"
-              borderRadius="md"
-            >
-              <AlertIcon />
-              <AlertTitle>{text}</AlertTitle>
-              <CloseButton onClick={onClose} />
-            </Alert>
-          </Fade>
-        </Box>
-      </Center>
-    </>
+    <Center height="calc(100vh - 64px)">
+      <Box
+        bgColor="blackAlpha.400"
+        borderRadius="md"
+        p={6}
+        w={500}
+        maxW="90vw"
+        boxShadow="lg"
+        position="relative"
+      >
+        {children}
+        {renderLink()}
+        <Fade in={open} onAnimationEnd={onAnimationEnd}>
+          <Alert
+            status="error"
+            position="absolute"
+            top="calc(100% + 64px)"
+            left="50%"
+            transform="translateX(-50%)"
+            w="auto"
+            maxW="90vw"
+            boxShadow="2xl"
+            borderRadius="md"
+          >
+            <AlertIcon />
+            <AlertTitle>{text}</AlertTitle>
+            <CloseButton onClick={onClose} />
+          </Alert>
+        </Fade>
+      </Box>
+    </Center>
   );
 };
 export default AuthContainer;
