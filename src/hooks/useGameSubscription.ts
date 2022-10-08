@@ -1,18 +1,7 @@
 import { useEffect, useState } from 'react';
 import Pusher, { type PresenceChannel } from 'pusher-js';
 
-interface MemberInfo {
-  email: string;
-  image: null;
-  name: string;
-}
-
-interface Member {
-  id: string;
-  info: MemberInfo;
-}
-
-type Members = Record<string, MemberInfo>;
+import type { Members, Member } from '../types/game/members';
 
 type UseGameSubscription = (code: string) => {
   members: Members;
@@ -34,7 +23,10 @@ const useGameSubscription: UseGameSubscription = (code) => {
     });
 
     const channel = pusher.subscribe(channelName) as PresenceChannel;
-    setMembers(channel.members.members);
+
+    channel.bind('pusher:subscription_succeeded', () => {
+      setMembers(channel.members.members);
+    });
 
     channel.bind('pusher:member_added', ({ id, info }: Member) => {
       setMembers((prev) => ({ ...prev, [id]: info }));
