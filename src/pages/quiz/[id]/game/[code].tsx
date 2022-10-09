@@ -12,7 +12,6 @@ import {
 
 import { getPropsWithSession } from '../../../../utils/session';
 import useGameSubscription from '../../../../hooks/useGameSubscription';
-import useAuthError from '../../../../hooks/useAuthError';
 import MembersList from '../../../../components/game/membersList';
 import type { Members } from '../../../../types/game/members';
 
@@ -73,7 +72,6 @@ const Game: NextPage = () => {
       onAuthError(error as Parameters<typeof onAuthError>[0]);
     }
   };
-  console.log(data);
 
   return (
     <Flex flexDirection="column" height="calc(100vh - 128px)">
@@ -81,7 +79,10 @@ const Game: NextPage = () => {
         <Text fontSize="2xl" fontWeight="bold" mb={6}>
           Game code: <Text as="span">{data?.code}</Text>
         </Text>
-        <Button colorScheme="teal" onClick={handleClick}>
+        <Button
+          colorScheme={isPlayer ? 'red' : 'teal'}
+          onClick={handleClick}
+        >
           {isPlayer ? 'Leave game' : 'Join game'}
         </Button>
       </Flex>

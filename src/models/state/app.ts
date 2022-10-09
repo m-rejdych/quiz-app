@@ -22,14 +22,17 @@ export default class AppState extends State<IAppState> {
     return this.get('games')[code];
   }
 
-  addGame(code: string, state: InitGameState): GameState {
+  addGame(code: string, state: Omit<InitGameState, 'onClean'>): GameState {
     if (this.getGame(code))
       throw new trpc.TRPCError({
         code: 'BAD_REQUEST',
         message: 'Game with this code already exists.',
       });
 
-    const game = new GameState(state);
+    const game = new GameState({
+      ...state,
+      onClean: this.removeGame.bind(this),
+    });
     this.set('games', (games) => ({ ...games, [code]: game }));
     return game;
   }

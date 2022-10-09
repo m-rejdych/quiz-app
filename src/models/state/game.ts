@@ -6,6 +6,10 @@ import State from './state';
 import PlayerState, { type InitPlayerState } from './player';
 import { GameEvent, ChannelEvent, Stage } from '../../types/game/events';
 
+interface PusherUser {
+  id: string;
+}
+
 type Quiz = Prisma.QuizGetPayload<{
   include: {
     questions: { include: { answers: true } };
@@ -17,6 +21,7 @@ export interface InitGameState {
   code: string;
   quiz: Quiz;
   pusher: Pusher;
+  onClean: (code: string) => void;
 }
 
 interface BaseGameState {
@@ -36,6 +41,7 @@ const GAME_START_COUNTDOWN = 5;
 const QUESTION_START_COUNTDOWN = 3;
 const QUESTION_COUNTDOWN = 10;
 const PLAYERS_CLEANUP_INTERVAL = 10000;
+const GAME_CLEANUP_TIMEOUT = 5000;
 
 const BASE_STATE: BaseGameState = {
   players: {},
@@ -55,41 +61,10 @@ export default class GameState extends State<IGameState> {
       ...state,
     });
 
-    const playersCleanupInterval = setInterval(async (): Promise<void> => {
-      try {
-        const response = await this.get('pusher').get({
-          path: `/channels/presence-${state.code}/users`,
-        });
-        const { users } = await response.json();
-
-        const currentPlayers = this.get('players');
-        const cleanedPlayers = Object.entries(currentPlayers).filter(
-          ([playerId]) =>
-            (users as { id: string }[]).some(
-              ({ id }) => id === playerId.toString(),
-            ),
-        );
-
-        if (cleanedPlayers.length === Object.keys(currentPlayers).length)
-          return;
-
-        const updatedPlayers = this.set(
-          'players',
-          cleanedPlayers.reduce(
-            (acc, [id, player]) => ({ ...acc, [id]: player }),
-            {},
-          ),
-        );
-
-        this.get('pusher').trigger(
-          `presence-${state.code}`,
-          ChannelEvent.UpdatePlayers,
-          updatedPlayers,
-        );
-      } catch (error) {
-        console.log(error);
-      }
-    }, PLAYERS_CLEANUP_INTERVAL);
+    const playersCleanupInterval = setInterval(
+      this.cleanupPlayers.bind(this),
+      PLAYERS_CLEANUP_INTERVAL,
+    );
 
     this.set('playersCleanupInterval', playersCleanupInterval);
   }
@@ -222,9 +197,53 @@ export default class GameState extends State<IGameState> {
     }
   }
 
-  private broadcast<T>(event: GameEvent, data: T): void {
+  private broadcast<T>(event: GameEvent | ChannelEvent, data: T): void {
     const code = this.get('code');
     this.get('pusher').trigger(`presence-${code}`, event, data);
+  }
+
+  // Should probably refactor this to general game cleanup function
+  private async cleanupPlayers(): Promise<void> {
+    const users = (await this.fetchUsers()) as PusherUser[];
+    if (!users.length) setTimeout(this.cleanGame.bind(this), GAME_CLEANUP_TIMEOUT);
+
+    const currentPlayers = this.get('players');
+    const cleanedPlayers = Object.entries(currentPlayers).filter(([playerId]) =>
+      users.some(({ id }) => id === playerId.toString()),
+    );
+
+    if (cleanedPlayers.length === Object.keys(currentPlayers).length) return;
+
+    const updatedPlayers = this.set(
+      'players',
+      cleanedPlayers.reduce(
+        (acc, [id, player]) => ({ ...acc, [id]: player }),
+        {},
+      ),
+    );
+
+    this.broadcast(ChannelEvent.UpdatePlayers, updatedPlayers);
+  }
+
+  private async cleanGame() {
+    const users = await this.fetchUsers();
+    if (users.length) return;
+
+    this.get('onClean')(this.get('code'));
+  }
+
+  private async fetchUsers(): Promise<PusherUser[]> {
+    try {
+      const response = await this.get('pusher').get({
+        path: `/channels/presence-${this.get('code')}/users`,
+      });
+      const { users } = await response.json();
+
+      return users;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   static generateCode(length = 5): string {
