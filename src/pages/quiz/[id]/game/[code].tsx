@@ -1,10 +1,18 @@
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { Heading, Progress, Text, Flex, Divider } from '@chakra-ui/react';
+import { useSession } from 'next-auth/react';
+import {
+  Heading,
+  Progress,
+  Text,
+  Flex,
+  Divider,
+  Button,
+} from '@chakra-ui/react';
 
 import { getPropsWithSession } from '../../../../utils/session';
-import { trpc } from '../../../../utils/trpc';
 import useGameSubscription from '../../../../hooks/useGameSubscription';
+import useAuthError from '../../../../hooks/useAuthError';
 import MembersList from '../../../../components/game/membersList';
 import type { Members } from '../../../../types/game/members';
 
@@ -15,13 +23,14 @@ interface MatchedMembers {
 
 const Game: NextPage = () => {
   const { query } = useRouter();
-  const { data, error, isLoading } = trpc.useQuery(
-    ['game.get', query.code as string],
-    {
-      refetchOnWindowFocus: false,
-    },
-  );
-  const { members } = useGameSubscription(query.code as string);
+  const {
+    members,
+    gameData: { data, error, isLoading },
+    joinGame,
+    leaveGame,
+    onAuthError,
+  } = useGameSubscription(query.code as string);
+  const { data: session } = useSession();
 
   if (isLoading)
     return <Progress size="sm" colorScheme="teal" mx={8} isIndeterminate />;
@@ -33,7 +42,7 @@ const Game: NextPage = () => {
       </Heading>
     );
 
-  if (!data) return null;
+  if (!data || !session?.user) return null;
 
   const matchedMembers = Object.entries(members).reduce(
     (acc, [id, info]) => {
@@ -51,11 +60,31 @@ const Game: NextPage = () => {
     { spectators: {}, players: {} } as MatchedMembers,
   );
 
+  const isPlayer = session.user.id.toString() in matchedMembers.players;
+
+  const handleClick = async (): Promise<void> => {
+    try {
+      if (isPlayer) {
+        await leaveGame.mutateAsync(query.code as string);
+      } else {
+        await joinGame.mutateAsync(query.code as string);
+      }
+    } catch (error) {
+      onAuthError(error as Parameters<typeof onAuthError>[0]);
+    }
+  };
+  console.log(data);
+
   return (
     <Flex flexDirection="column" height="calc(100vh - 128px)">
-      <Text fontSize="2xl" fontWeight="bold" mb={6}>
-        Game code: <Text as="span">{data?.code}</Text>
-      </Text>
+      <Flex alignItems="center" justifyContent="space-between">
+        <Text fontSize="2xl" fontWeight="bold" mb={6}>
+          Game code: <Text as="span">{data?.code}</Text>
+        </Text>
+        <Button colorScheme="teal" onClick={handleClick}>
+          {isPlayer ? 'Leave game' : 'Join game'}
+        </Button>
+      </Flex>
       <Flex flex={1}>
         <MembersList
           title="Spectators"

@@ -8,6 +8,10 @@ export enum GameEvent {
   FinishGame = 'FINISH_GAME',
 }
 
+export enum ChannelEvent {
+  UpdatePlayers = 'UPDATE_PLAYERS',
+}
+
 export enum Stage {
   NotStarted,
   Starting,

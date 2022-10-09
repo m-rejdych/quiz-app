@@ -4,7 +4,7 @@ import type Pusher from 'pusher';
 
 import State from './state';
 import PlayerState, { type InitPlayerState } from './player';
-import { GameEvent, Stage } from '../../types/game/events';
+import { GameEvent, ChannelEvent, Stage } from '../../types/game/events';
 
 type Quiz = Prisma.QuizGetPayload<{
   include: {
@@ -27,6 +27,7 @@ interface BaseGameState {
   questionCountdown: number;
   gameStage: Stage;
   questionStage: Stage;
+  playersCleanupInterval: ReturnType<typeof setInterval> | null;
 }
 
 type IGameState = InitGameState & BaseGameState;
@@ -34,6 +35,7 @@ type IGameState = InitGameState & BaseGameState;
 const GAME_START_COUNTDOWN = 5;
 const QUESTION_START_COUNTDOWN = 3;
 const QUESTION_COUNTDOWN = 10;
+const PLAYERS_CLEANUP_INTERVAL = 10000;
 
 const BASE_STATE: BaseGameState = {
   players: {},
@@ -43,11 +45,53 @@ const BASE_STATE: BaseGameState = {
   questionCountdown: 0,
   gameStage: Stage.NotStarted,
   questionStage: Stage.NotStarted,
+  playersCleanupInterval: null,
 };
 
 export default class GameState extends State<IGameState> {
   constructor(state: InitGameState) {
-    super({ ...BASE_STATE, ...state });
+    super({
+      ...BASE_STATE,
+      ...state,
+    });
+
+    const playersCleanupInterval = setInterval(async (): Promise<void> => {
+      try {
+        const response = await this.get('pusher').get({
+          path: `/channels/presence-${state.code}/users`,
+        });
+        const { users } = await response.json();
+
+        const currentPlayers = this.get('players');
+        const cleanedPlayers = Object.entries(currentPlayers).filter(
+          ([playerId]) =>
+            (users as { id: string }[]).some(
+              ({ id }) => id === playerId.toString(),
+            ),
+        );
+
+        if (cleanedPlayers.length === Object.keys(currentPlayers).length)
+          return;
+
+        const updatedPlayers = this.set(
+          'players',
+          cleanedPlayers.reduce(
+            (acc, [id, player]) => ({ ...acc, [id]: player }),
+            {},
+          ),
+        );
+
+        this.get('pusher').trigger(
+          `presence-${state.code}`,
+          ChannelEvent.UpdatePlayers,
+          updatedPlayers,
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    }, PLAYERS_CLEANUP_INTERVAL);
+
+    this.set('playersCleanupInterval', playersCleanupInterval);
   }
 
   startGame(): void {

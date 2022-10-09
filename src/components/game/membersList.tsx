@@ -16,7 +16,7 @@ interface Props extends ListProps {
 }
 
 const MembersList: FC<Props> = ({ members, title, ...rest }) => (
-  <UnorderedList listStyleType="none" {...rest}>
+  <UnorderedList listStyleType="none" spacing={3} {...rest}>
     {title && (
       <Text fontSize="2xl" fontWeight="bold" mb={3}>
         {title}

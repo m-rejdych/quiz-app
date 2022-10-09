@@ -1,6 +1,7 @@
 import * as trpc from '@trpc/server';
 import { z } from 'zod';
 
+import { ChannelEvent } from '../../types/game/events';
 import createRouter from '../createRouter';
 import GameState from '../../models/state/game';
 
@@ -18,7 +19,9 @@ const gameRouter = createRouter()
         throw new trpc.TRPCError({ code: 'NOT_FOUND' });
       }
 
-      return game.getReadonlyState({ exclude: 'pusher' });
+      return game.getReadonlyState({
+        exclude: ['pusher', 'playersCleanupInterval'],
+      });
     },
   })
   .mutation('create', {
@@ -46,7 +49,73 @@ const gameRouter = createRouter()
       const code = GameState.generateCode();
       const game = state.addGame(code, { code, quiz, pusher });
 
-      return game.getReadonlyState({ exclude: 'pusher' });
+      return game.getReadonlyState({
+        exclude: ['pusher', 'playersCleanupInterval'],
+      });
+    },
+  })
+  .mutation('join', {
+    input: z.string(),
+    resolve: async ({ ctx: { userId, state, prisma, pusher }, input }) => {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, username: true },
+      });
+      if (!user) {
+        throw new trpc.TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found.',
+        });
+      }
+
+      const game = state.getGame(input);
+      if (!game) {
+        throw new trpc.TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Game not found.',
+        });
+      }
+
+      if (game.getPlayer(userId)) {
+        throw new trpc.TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Player already in game.',
+        });
+      }
+      game.addPlayer(userId, { user });
+
+      const updatedPlayers = game.getReadonlyState().players;
+
+      pusher.trigger(
+        `presence-${input}`,
+        ChannelEvent.UpdatePlayers,
+        updatedPlayers,
+      );
+
+      return updatedPlayers;
+    },
+  })
+  .mutation('leave', {
+    input: z.string(),
+    resolve: ({ ctx: { userId, state, pusher }, input }) => {
+      const game = state.getGame(input);
+      if (!game) {
+        throw new trpc.TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Game not found.',
+        });
+      }
+      game.removePlayer(userId);
+
+      const updatedPlayers = game.getReadonlyState().players;
+
+      pusher.trigger(
+        `presence-${input}`,
+        ChannelEvent.UpdatePlayers,
+        updatedPlayers,
+      );
+
+      return updatedPlayers;
     },
   });
 

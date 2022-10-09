@@ -18,8 +18,8 @@ export default class AppState extends State<IAppState> {
     super(BASE_STATE);
   }
 
-  getGame(id: keyof Games): GameState | undefined {
-    return this.get('games')[id];
+  getGame(code: keyof Games): GameState | undefined {
+    return this.get('games')[code];
   }
 
   addGame(code: string, state: InitGameState): GameState {
@@ -37,6 +37,12 @@ export default class AppState extends State<IAppState> {
   removeGame(code: keyof Games): boolean {
     const currentGames = { ...this.get('games') };
     if (!(code in currentGames)) return false;
+
+    const playerCleanupInterval =
+      currentGames[code].getReadonlyState().playersCleanupInterval;
+    if (playerCleanupInterval) {
+      clearInterval(playerCleanupInterval);
+    }
 
     delete currentGames[code];
     this.set('games', currentGames);
