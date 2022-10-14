@@ -20,7 +20,7 @@ const gameRouter = createRouter()
       }
 
       return game.getReadonlyState({
-        exclude: ['pusher', 'playersCleanupInterval'],
+        exclude: ['pusher', 'cleanupLoopInterval'],
       });
     },
   })
@@ -50,13 +50,13 @@ const gameRouter = createRouter()
       const game = state.addGame(code, { code, quiz, pusher });
 
       return game.getReadonlyState({
-        exclude: ['pusher', 'playersCleanupInterval'],
+        exclude: ['pusher', 'cleanupLoopInterval'],
       });
     },
   })
   .mutation('join', {
     input: z.string(),
-    resolve: async ({ ctx: { userId, state, prisma, pusher }, input }) => {
+    resolve: async ({ ctx: { userId, state, prisma }, input }) => {
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, username: true },
@@ -84,20 +84,12 @@ const gameRouter = createRouter()
       }
       game.addPlayer(userId, { user });
 
-      const updatedPlayers = game.getReadonlyState().players;
-
-      pusher.trigger(
-        `presence-${input}`,
-        ChannelEvent.UpdatePlayers,
-        updatedPlayers,
-      );
-
-      return updatedPlayers;
+      return game.getReadonlyState().players;
     },
   })
   .mutation('leave', {
     input: z.string(),
-    resolve: ({ ctx: { userId, state, pusher }, input }) => {
+    resolve: ({ ctx: { userId, state }, input }) => {
       const game = state.getGame(input);
       if (!game) {
         throw new trpc.TRPCError({
@@ -107,15 +99,24 @@ const gameRouter = createRouter()
       }
       game.removePlayer(userId);
 
-      const updatedPlayers = game.getReadonlyState().players;
+      return game.getReadonlyState().players;
+    },
+  })
+  .mutation('start', {
+    input: z.string(),
+    resolve: ({ ctx: { userId, state }, input }) => {
+      const game = state.getGame(input);
+      if (!game) {
+        throw new trpc.TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Game not found.',
+        });
+      }
+      if (game.getReadonlyState().quiz?.authorId !== userId) {
+        throw new trpc.TRPCError({ code: 'FORBIDDEN' });
+      }
 
-      pusher.trigger(
-        `presence-${input}`,
-        ChannelEvent.UpdatePlayers,
-        updatedPlayers,
-      );
-
-      return updatedPlayers;
+      game.start();
     },
   });
 

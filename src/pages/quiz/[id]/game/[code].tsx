@@ -8,6 +8,7 @@ import {
   Flex,
   Divider,
   Button,
+  Box,
 } from '@chakra-ui/react';
 
 import { getPropsWithSession } from '../../../../utils/session';
@@ -22,13 +23,15 @@ interface MatchedMembers {
 
 const Game: NextPage = () => {
   const { query } = useRouter();
+  const code = query.code as string;
   const {
     members,
     gameData: { data, error, isLoading },
     joinGame,
     leaveGame,
+    startGame,
     onAuthError,
-  } = useGameSubscription(query.code as string);
+  } = useGameSubscription(code);
   const { data: session } = useSession();
 
   if (isLoading)
@@ -61,13 +64,23 @@ const Game: NextPage = () => {
 
   const isPlayer = session.user.id.toString() in matchedMembers.players;
 
-  const handleClick = async (): Promise<void> => {
+  const isAuthor = data.quiz?.authorId === session.user.id;
+
+  const togglePlayerState = async (): Promise<void> => {
     try {
       if (isPlayer) {
-        await leaveGame.mutateAsync(query.code as string);
+        await leaveGame.mutateAsync(code);
       } else {
-        await joinGame.mutateAsync(query.code as string);
+        await joinGame.mutateAsync(code);
       }
+    } catch (error) {
+      onAuthError(error as Parameters<typeof onAuthError>[0]);
+    }
+  };
+
+  const handleStartGame = async (): Promise<void> => {
+    try {
+      await startGame.mutateAsync(code);
     } catch (error) {
       onAuthError(error as Parameters<typeof onAuthError>[0]);
     }
@@ -79,12 +92,23 @@ const Game: NextPage = () => {
         <Text fontSize="2xl" fontWeight="bold" mb={6}>
           Game code: <Text as="span">{data?.code}</Text>
         </Text>
-        <Button
-          colorScheme={isPlayer ? 'red' : 'teal'}
-          onClick={handleClick}
-        >
-          {isPlayer ? 'Leave game' : 'Join game'}
-        </Button>
+        <Box>
+          <Button
+            colorScheme={isPlayer ? 'red' : 'teal'}
+            onClick={togglePlayerState}
+          >
+            {isPlayer ? 'Leave game' : 'Join game'}
+          </Button>
+          {isAuthor && (
+            <Button
+              colorScheme="yellow"
+              disabled={!Object.keys(matchedMembers.players).length}
+              onClick={handleStartGame}
+            >
+              Start game
+            </Button>
+          )}
+        </Box>
       </Flex>
       <Flex flex={1}>
         <MembersList

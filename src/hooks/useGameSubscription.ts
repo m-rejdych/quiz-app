@@ -4,7 +4,7 @@ import type { inferProcedureOutput } from '@trpc/server';
 
 import useAuthError from '../hooks/useAuthError';
 import { trpc } from '../utils/trpc';
-import { ChannelEvent } from '../types/game/events';
+import { ChannelEvent, GameEvent } from '../types/game/events';
 import type { Members, Member } from '../types/game/members';
 import type { AppRouter } from '../pages/api/trpc/[trpc]';
 
@@ -20,6 +20,7 @@ const useGameSubscription = (code: string) => {
   });
   const joinGame = trpc.useMutation('game.join');
   const leaveGame = trpc.useMutation('game.leave');
+  const startGame = trpc.useMutation('game.start');
 
   const channelName = `presence-${code}`;
 
@@ -75,7 +76,14 @@ const useGameSubscription = (code: string) => {
     };
   }, []);
 
-  return { members, gameData, joinGame, leaveGame, onAuthError: onError };
+  return {
+    members,
+    gameData,
+    joinGame,
+    leaveGame,
+    startGame,
+    onAuthError: onError,
+  };
 };
 
 export default useGameSubscription;

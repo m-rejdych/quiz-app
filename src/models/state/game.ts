@@ -69,8 +69,12 @@ export default class GameState extends State<IGameState> {
     this.set('cleanupLoopInterval', playersCleanupInterval);
   }
 
-  startGame(): void {
-    if (!this.get('quiz').questions.length) return;
+  start(): void {
+    if (
+      !this.get('quiz').questions.length ||
+      !Object.keys(this.get('players')).length
+    )
+      return;
 
     this.set('gameStage', Stage.Starting);
     this.set('gameStartCountdown', GAME_START_COUNTDOWN);
@@ -96,6 +100,8 @@ export default class GameState extends State<IGameState> {
     const player = new PlayerState(state);
     this.set('players', (players) => ({ ...players, [id]: player }));
 
+    this.broadcast(ChannelEvent.UpdatePlayers, this.get('players'));
+
     return player;
   }
 
@@ -105,17 +111,20 @@ export default class GameState extends State<IGameState> {
 
     delete currentPlayers[id];
     this.set('players', currentPlayers);
+
+    this.broadcast(ChannelEvent.UpdatePlayers, currentPlayers);
+
     return true;
   }
 
-  private finishGame(): void {
+  private finish(): void {
     this.broadcast(GameEvent.FinishGame, {});
   }
 
   private startQuestion(): void {
     const { questions } = this.get('quiz');
     if (!questions[this.get('currentQuestionIndex') + 1]) {
-      return this.finishGame();
+      return this.finish();
     }
 
     this.broadcast(GameEvent.StartQuestion, {
