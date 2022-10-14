@@ -41,10 +41,10 @@ export default class AppState extends State<IAppState> {
     const currentGames = { ...this.get('games') };
     if (!(code in currentGames)) return false;
 
-    const playerCleanupInterval =
-      currentGames[code].getReadonlyState().playersCleanupInterval;
-    if (playerCleanupInterval) {
-      clearInterval(playerCleanupInterval);
+    const cleanupLoopInterval =
+      currentGames[code].getReadonlyState().cleanupLoopInterval;
+    if (cleanupLoopInterval) {
+      clearInterval(cleanupLoopInterval);
     }
 
     delete currentGames[code];

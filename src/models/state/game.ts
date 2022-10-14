@@ -32,7 +32,7 @@ interface BaseGameState {
   questionCountdown: number;
   gameStage: Stage;
   questionStage: Stage;
-  playersCleanupInterval: ReturnType<typeof setInterval> | null;
+  cleanupLoopInterval: ReturnType<typeof setInterval> | null;
 }
 
 type IGameState = InitGameState & BaseGameState;
@@ -40,7 +40,7 @@ type IGameState = InitGameState & BaseGameState;
 const GAME_START_COUNTDOWN = 5;
 const QUESTION_START_COUNTDOWN = 3;
 const QUESTION_COUNTDOWN = 10;
-const PLAYERS_CLEANUP_INTERVAL = 10000;
+const CLEANUP_LOOP_INTERVAL = 10000;
 const GAME_CLEANUP_TIMEOUT = 5000;
 
 const BASE_STATE: BaseGameState = {
@@ -51,7 +51,7 @@ const BASE_STATE: BaseGameState = {
   questionCountdown: 0,
   gameStage: Stage.NotStarted,
   questionStage: Stage.NotStarted,
-  playersCleanupInterval: null,
+  cleanupLoopInterval: null,
 };
 
 export default class GameState extends State<IGameState> {
@@ -62,11 +62,11 @@ export default class GameState extends State<IGameState> {
     });
 
     const playersCleanupInterval = setInterval(
-      this.cleanupPlayers.bind(this),
-      PLAYERS_CLEANUP_INTERVAL,
+      this.cleanupLoop.bind(this),
+      CLEANUP_LOOP_INTERVAL,
     );
 
-    this.set('playersCleanupInterval', playersCleanupInterval);
+    this.set('cleanupLoopInterval', playersCleanupInterval);
   }
 
   startGame(): void {
@@ -202,11 +202,7 @@ export default class GameState extends State<IGameState> {
     this.get('pusher').trigger(`presence-${code}`, event, data);
   }
 
-  // Should probably refactor this to general game cleanup function
-  private async cleanupPlayers(): Promise<void> {
-    const users = (await this.fetchUsers()) as PusherUser[];
-    if (!users.length) setTimeout(this.cleanGame.bind(this), GAME_CLEANUP_TIMEOUT);
-
+  private async cleanupPlayers(users: PusherUser[]): Promise<void> {
     const currentPlayers = this.get('players');
     const cleanedPlayers = Object.entries(currentPlayers).filter(([playerId]) =>
       users.some(({ id }) => id === playerId.toString()),
@@ -225,11 +221,16 @@ export default class GameState extends State<IGameState> {
     this.broadcast(ChannelEvent.UpdatePlayers, updatedPlayers);
   }
 
-  private async cleanGame() {
-    const users = await this.fetchUsers();
+  private async cleanupGame(users: PusherUser[]) {
     if (users.length) return;
-
     this.get('onClean')(this.get('code'));
+  }
+
+  private async cleanupLoop(): Promise<void> {
+    const users = await this.fetchUsers();
+    this.cleanupPlayers(users);
+    if (!users.length)
+      setTimeout(this.cleanupGame.bind(this, users), GAME_CLEANUP_TIMEOUT);
   }
 
   private async fetchUsers(): Promise<PusherUser[]> {
