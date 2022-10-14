@@ -33,25 +33,29 @@ interface BaseGameState {
   gameStage: Stage;
   questionStage: Stage;
   cleanupLoopInterval: ReturnType<typeof setInterval> | null;
+  currentStageTimeout: ReturnType<typeof setTimeout> | null;
 }
 
 type IGameState = InitGameState & BaseGameState;
 
 const GAME_START_COUNTDOWN = 5;
 const QUESTION_START_COUNTDOWN = 3;
-const QUESTION_COUNTDOWN = 10;
+const QUESTION_COUNTDOWN = 11;
 const CLEANUP_LOOP_INTERVAL = 10000;
 const GAME_CLEANUP_TIMEOUT = 5000;
+const SHORT_TICK = 1000;
+const LONG_TICK = 5000;
 
 const BASE_STATE: BaseGameState = {
   players: {},
   currentQuestionIndex: -1,
-  gameStartCountdown: 0,
-  questionStartCountdown: 0,
-  questionCountdown: 0,
+  gameStartCountdown: GAME_START_COUNTDOWN,
+  questionStartCountdown: QUESTION_START_COUNTDOWN,
+  questionCountdown: QUESTION_COUNTDOWN,
   gameStage: Stage.NotStarted,
   questionStage: Stage.NotStarted,
   cleanupLoopInterval: null,
+  currentStageTimeout: null,
 };
 
 export default class GameState extends State<IGameState> {
@@ -69,28 +73,11 @@ export default class GameState extends State<IGameState> {
     this.set('cleanupLoopInterval', playersCleanupInterval);
   }
 
-  start(): void {
-    if (
-      !this.get('quiz').questions.length ||
-      !Object.keys(this.get('players')).length
-    )
-      return;
-
-    this.set('gameStage', Stage.Starting);
-    this.set('gameStartCountdown', GAME_START_COUNTDOWN);
-
-    this.broadcast(GameEvent.StartGame, {
-      gameStartCountdown: this.get('gameStartCountdown'),
-    });
-
-    this.countdownStartGame();
-  }
-
   getPlayer(id: number): PlayerState | undefined {
     return this.get('players')[id];
   }
 
-  addPlayer(id: number, state: InitPlayerState): PlayerState {
+  async addPlayer(id: number, state: InitPlayerState): Promise<PlayerState> {
     if (this.getPlayer(id))
       throw new trpc.TRPCError({
         code: 'BAD_REQUEST',
@@ -100,115 +87,139 @@ export default class GameState extends State<IGameState> {
     const player = new PlayerState(state);
     this.set('players', (players) => ({ ...players, [id]: player }));
 
-    this.broadcast(ChannelEvent.UpdatePlayers, this.get('players'));
+    await this.broadcast(ChannelEvent.UpdatePlayers, this.get('players'));
 
     return player;
   }
 
-  removePlayer(id: number): boolean {
+  async removePlayer(id: number): Promise<boolean> {
     const currentPlayers = { ...this.get('players') };
     if (!(id in currentPlayers)) return false;
 
     delete currentPlayers[id];
     this.set('players', currentPlayers);
 
-    this.broadcast(ChannelEvent.UpdatePlayers, currentPlayers);
+    await this.broadcast(ChannelEvent.UpdatePlayers, currentPlayers);
 
     return true;
   }
 
-  private finish(): void {
-    this.broadcast(GameEvent.FinishGame, {});
+  async start(): Promise<void> {
+    if (
+      !this.get('quiz').questions.length ||
+      !Object.keys(this.get('players')).length
+    )
+      return;
+
+    this.set('gameStage', Stage.Starting);
+    this.set('gameStartCountdown', GAME_START_COUNTDOWN);
+    this.set('currentQuestionIndex', -1);
+
+    await this.broadcast(GameEvent.StartGame, {
+      gameStartCountdown: this.get('gameStartCountdown'),
+    });
+
+    this.setCurrentStageTimeout(this.countdownStartGame, SHORT_TICK);
   }
 
-  private startQuestion(): void {
+  private async countdownStartGame(): Promise<void> {
+    const currentCountdown = this.get('gameStartCountdown');
+    const newCountdown = Math.max(0, currentCountdown - 1);
+
+    if (currentCountdown) {
+      this.set('gameStartCountdown', newCountdown);
+      await this.broadcast(GameEvent.CountdownStartGame, {
+        gameStartCountdown: newCountdown,
+      });
+    } else {
+      this.set('gameStage', Stage.Started);
+    }
+
+    this.setCurrentStageTimeout(
+      this[newCountdown ? 'countdownStartGame' : 'startQuestion'],
+      SHORT_TICK,
+    );
+  }
+
+  private async startQuestion(): Promise<void> {
     const { questions } = this.get('quiz');
+
     if (!questions[this.get('currentQuestionIndex') + 1]) {
       return this.finish();
     }
 
-    this.broadcast(GameEvent.StartQuestion, {
-      questionStartCountdown: this.get('questionStartCountdown'),
-    });
-
     this.set('currentQuestionIndex', (prev) => prev + 1);
     this.set('questionStage', Stage.Starting);
     this.set('questionStartCountdown', QUESTION_START_COUNTDOWN);
+    this.set('questionCountdown', QUESTION_COUNTDOWN);
 
-    this.countdownStartQuestion();
+    await this.broadcast(GameEvent.StartQuestion, {
+      questionStartCountdown: this.get('questionStartCountdown'),
+    });
+
+    this.setCurrentStageTimeout(this.countdownStartQuestion, SHORT_TICK);
   }
 
-  private questionLoop(): void {
-    const currentCountdown = this.get('questionCountdown');
-
-    if (currentCountdown) {
-      setTimeout(() => {
-        const currentQuestion =
-          this.get('quiz').questions[this.get('currentQuestionIndex')];
-
-        this.set('questionCountdown', (prev) => Math.max(0, prev - 1));
-        this.broadcast(GameEvent.QuestionLoop, {
-          currentQuestion,
-          questionCountdown: this.get('questionCountdown'),
-        });
-
-        this.questionLoop();
-      }, 1000);
-    } else {
-      this.set('questionCountdown', QUESTION_COUNTDOWN);
-      this.set('questionStage', Stage.Finished);
-      this.finishQuestion();
-    }
-  }
-
-  private finishQuestion(): void {
-    this.broadcast(GameEvent.FinishQuestion, {});
-
-    setTimeout(() => {
-      this.set('questionStage', Stage.Started);
-      this.startQuestion();
-    }, 5000);
-  }
-
-  private countdownStartGame(): void {
-    const currentCountdown = this.get('gameStartCountdown');
-
-    if (currentCountdown) {
-      setTimeout(() => {
-        this.set('gameStartCountdown', (prev) => Math.max(0, prev - 1));
-        this.broadcast(GameEvent.CountdownStartGame, {
-          gameStartCountdown: this.get('gameStartCountdown'),
-        });
-        this.countdownStartGame();
-      }, 1000);
-    } else {
-      this.set('gameStage', Stage.Started);
-      this.set('gameStartCountdown', GAME_START_COUNTDOWN);
-      this.startQuestion();
-    }
-  }
-
-  private countdownStartQuestion(): void {
+  private async countdownStartQuestion(): Promise<void> {
     const currentCountdown = this.get('questionStartCountdown');
+    const newCountdown = Math.max(0, currentCountdown - 1);
 
     if (currentCountdown) {
-      setTimeout(() => {
-        this.set('questionStartCountdown', (prev) => Math.max(0, prev - 1));
-        this.broadcast(GameEvent.CountdownStartQuestion, {
-          questionStartCountdown: this.get('questionStartCountdown'),
-        });
-        this.countdownStartQuestion();
-      }, 1000);
+      this.set('questionStartCountdown', newCountdown);
+      await this.broadcast(GameEvent.CountdownStartQuestion, {
+        questionStartCountdown: newCountdown,
+      });
     } else {
       this.set('questionStage', Stage.Started);
-      this.set('questionStartCountdown', QUESTION_START_COUNTDOWN);
-      this.questionLoop();
     }
+
+    this.setCurrentStageTimeout(
+      this[newCountdown ? 'countdownStartQuestion' : 'questionLoop'],
+      SHORT_TICK,
+    );
   }
 
-  private broadcast<T>(event: GameEvent | ChannelEvent, data: T): void {
+  private async questionLoop(): Promise<void> {
+    const currentCountdown = this.get('questionCountdown');
+    const newCountdown = Math.max(0, currentCountdown - 1);
+
+    if (currentCountdown) {
+      const currentQuestion =
+        this.get('quiz').questions[this.get('currentQuestionIndex')];
+
+      this.set('questionCountdown', newCountdown);
+      await this.broadcast(GameEvent.QuestionLoop, {
+        currentQuestion,
+        questionCountdown: newCountdown,
+      });
+    } else {
+      this.set('questionStage', Stage.Finished);
+    }
+
+    this.setCurrentStageTimeout(
+      this[newCountdown ? 'questionLoop' : 'finishQuestion'],
+      SHORT_TICK,
+    );
+  }
+
+  private async finishQuestion(): Promise<void> {
+    await this.broadcast(GameEvent.FinishQuestion, {});
+    this.set('questionStage', Stage.Started);
+
+    this.setCurrentStageTimeout(this.startQuestion, LONG_TICK);
+  }
+
+  private async finish(): Promise<void> {
+    await this.broadcast(GameEvent.FinishGame, {});
+    this.set('currentStageTimeout', null);
+  }
+
+  private async broadcast<T>(
+    event: GameEvent | ChannelEvent,
+    data: T,
+  ): Promise<void> {
     const code = this.get('code');
-    this.get('pusher').trigger(`presence-${code}`, event, data);
+    await this.get('pusher').trigger(`presence-${code}`, event, data);
   }
 
   private async cleanupPlayers(users: PusherUser[]): Promise<void> {
@@ -227,7 +238,7 @@ export default class GameState extends State<IGameState> {
       ),
     );
 
-    this.broadcast(ChannelEvent.UpdatePlayers, updatedPlayers);
+    await this.broadcast(ChannelEvent.UpdatePlayers, updatedPlayers);
   }
 
   private async cleanupGame(users: PusherUser[]) {
@@ -254,6 +265,10 @@ export default class GameState extends State<IGameState> {
       console.log(error);
       throw error;
     }
+  }
+
+  private setCurrentStageTimeout(cb: () => void, ms: number): void {
+    this.set('currentStageTimeout', setTimeout(cb.bind(this), ms));
   }
 
   static generateCode(length = 5): string {

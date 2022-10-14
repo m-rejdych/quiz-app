@@ -65,6 +65,27 @@ const useGameSubscription = (code: string) => {
         setQueryData(['game.get', code], { ...gameData.data, players });
       },
     );
+    channel.bind(GameEvent.StartGame, (data: any) => {
+      console.log('start game', data);
+    });
+    channel.bind(GameEvent.CountdownStartGame, (data: any) => {
+      console.log('countdown start game', data);
+    });
+    channel.bind(GameEvent.StartQuestion, (data: any) => {
+      console.log('start question', data);
+    });
+    channel.bind(GameEvent.QuestionLoop, (data: any) => {
+      console.log('question loop', data);
+    });
+    channel.bind(GameEvent.FinishQuestion, (data: any) => {
+      console.log('finsh question', data);
+    });
+    channel.bind(GameEvent.CountdownStartQuestion, (data: any) => {
+      console.log('countdown start question', data);
+    });
+    channel.bind(GameEvent.FinishGame, (data: any) => {
+      console.log('finsh game', data);
+    });
 
     return () => {
       channel.unbind_all();

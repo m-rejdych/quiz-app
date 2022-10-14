@@ -1,6 +1,6 @@
 export enum GameEvent {
   StartGame = 'START_GAME',
-  CountdownStartGame = 'START_GAME',
+  CountdownStartGame = 'COUNTDOWN_START_GAME',
   StartQuestion = 'START_QUESTION',
   CountdownStartQuestion = 'COUNTDOWN_START_QUESTION',
   QuestionLoop = 'QUESTION_LOOP',

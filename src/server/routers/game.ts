@@ -82,14 +82,14 @@ const gameRouter = createRouter()
           message: 'Player already in game.',
         });
       }
-      game.addPlayer(userId, { user });
+      await game.addPlayer(userId, { user });
 
       return game.getReadonlyState().players;
     },
   })
   .mutation('leave', {
     input: z.string(),
-    resolve: ({ ctx: { userId, state }, input }) => {
+    resolve: async ({ ctx: { userId, state }, input }) => {
       const game = state.getGame(input);
       if (!game) {
         throw new trpc.TRPCError({
@@ -97,7 +97,7 @@ const gameRouter = createRouter()
           message: 'Game not found.',
         });
       }
-      game.removePlayer(userId);
+      await game.removePlayer(userId);
 
       return game.getReadonlyState().players;
     },

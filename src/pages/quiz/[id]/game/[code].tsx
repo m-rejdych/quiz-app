@@ -102,6 +102,7 @@ const Game: NextPage = () => {
           {isAuthor && (
             <Button
               colorScheme="yellow"
+              ml={3}
               disabled={!Object.keys(matchedMembers.players).length}
               onClick={handleStartGame}
             >
