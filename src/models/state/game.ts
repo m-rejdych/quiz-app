@@ -6,16 +6,18 @@ import State from './state';
 import PlayerState, { type InitPlayerState } from './player';
 import { GameEvent, ChannelEvent, Stage } from '../../types/game/events';
 
-interface PusherUser {
-  id: string;
-}
-
 type Quiz = Prisma.QuizGetPayload<{
   include: {
-    questions: { include: { answers: true } };
+    questions: {
+      include: { answers: { select: { id: true; content: true } } };
+    };
     author: { select: { id: true; username: true } };
   };
 }>;
+
+interface PusherUser {
+  id: string;
+}
 
 interface BroadcastOpts {
   includeStages?: boolean;

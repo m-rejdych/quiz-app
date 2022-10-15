@@ -1,6 +1,5 @@
 import * as trpc from '@trpc/server';
 import { z } from 'zod';
-import { ChannelEvent } from '../../types/game/events';
 import createRouter from '../createRouter';
 import GameState from '../../models/state/game';
 
@@ -31,7 +30,9 @@ const gameRouter = createRouter()
       const quiz = await prisma.quiz.findUnique({
         where: { id: quizId },
         include: {
-          questions: { include: { answers: true } },
+          questions: {
+            include: { answers: { select: { id: true, content: true } } },
+          },
           author: { select: { id: true, username: true } },
         },
       });

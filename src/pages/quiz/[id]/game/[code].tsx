@@ -8,6 +8,7 @@ import useGameSubscription from '../../../../hooks/useGameSubscription';
 import InitialView from '../../../../components/game/initialView';
 import GameStartingView from '../../../../components/game/startingView';
 import QuestionStrtingView from '../../../../components/question/startingView';
+import CurrentQuestionView from '../../../../components/question/currentView';
 import { getPropsWithSession } from '../../../../utils/session';
 import { Stage } from '../../../../types/game/events';
 import type { MatchedMembers } from '../../../../types/game/members';
@@ -62,11 +63,11 @@ const Game: NextPage = () => {
         );
       case Stage.Started:
         return (
-          <Box>
-            Current question{' '}
-            {data.quiz.questions[data.currentQuestionIndex]?.title}{' '}
-            {data.questionCountdown}
-          </Box>
+          <CurrentQuestionView
+            title={currentQuestion.title}
+            answers={currentQuestion.answers}
+            countdown={data.questionCountdown}
+          />
         );
       case Stage.Finished:
         return <Box>Question has finished</Box>;
