@@ -17,6 +17,10 @@ type Quiz = Prisma.QuizGetPayload<{
   };
 }>;
 
+interface BroadcastOpts {
+  includeStages?: boolean;
+}
+
 export interface InitGameState {
   code: string;
   quiz: Quiz;
@@ -87,7 +91,9 @@ export default class GameState extends State<IGameState> {
     const player = new PlayerState(state);
     this.set('players', (players) => ({ ...players, [id]: player }));
 
-    await this.broadcast(ChannelEvent.UpdatePlayers, this.get('players'));
+    await this.broadcast(ChannelEvent.UpdatePlayers, {
+      players: this.get('players'),
+    });
 
     return player;
   }
@@ -99,7 +105,9 @@ export default class GameState extends State<IGameState> {
     delete currentPlayers[id];
     this.set('players', currentPlayers);
 
-    await this.broadcast(ChannelEvent.UpdatePlayers, currentPlayers);
+    await this.broadcast(ChannelEvent.UpdatePlayers, {
+      players: currentPlayers,
+    });
 
     return true;
   }
@@ -115,36 +123,42 @@ export default class GameState extends State<IGameState> {
     this.set('gameStartCountdown', GAME_START_COUNTDOWN);
     this.set('currentQuestionIndex', -1);
 
-    await this.broadcast(GameEvent.StartGame, {
-      gameStartCountdown: this.get('gameStartCountdown'),
-    });
+    await this.broadcast(
+      GameEvent.StartGame,
+      {
+        gameStartCountdown: this.get('gameStartCountdown'),
+      },
+      { includeStages: true },
+    );
 
     this.setCurrentStageTimeout(this.countdownStartGame, SHORT_TICK);
   }
 
   private async countdownStartGame(): Promise<void> {
     const currentCountdown = this.get('gameStartCountdown');
-    const newCountdown = Math.max(0, currentCountdown - 1);
 
     if (currentCountdown) {
-      this.set('gameStartCountdown', newCountdown);
-      await this.broadcast(GameEvent.CountdownStartGame, {
-        gameStartCountdown: newCountdown,
-      });
+      this.set('gameStartCountdown', (prev) => Math.max(0, prev - 1));
+      await this.broadcast(
+        GameEvent.CountdownStartGame,
+        {
+          gameStartCountdown: this.get('gameStartCountdown'),
+        },
+        { includeStages: true },
+      );
+
+      this.setCurrentStageTimeout(this.countdownStartGame, SHORT_TICK);
     } else {
       this.set('gameStage', Stage.Started);
+      this.startQuestion();
     }
-
-    this.setCurrentStageTimeout(
-      this[newCountdown ? 'countdownStartGame' : 'startQuestion'],
-      SHORT_TICK,
-    );
   }
 
   private async startQuestion(): Promise<void> {
     const { questions } = this.get('quiz');
 
     if (!questions[this.get('currentQuestionIndex') + 1]) {
+      this.set('gameStage', Stage.Finished);
       return this.finish();
     }
 
@@ -153,73 +167,87 @@ export default class GameState extends State<IGameState> {
     this.set('questionStartCountdown', QUESTION_START_COUNTDOWN);
     this.set('questionCountdown', QUESTION_COUNTDOWN);
 
-    await this.broadcast(GameEvent.StartQuestion, {
-      questionStartCountdown: this.get('questionStartCountdown'),
-    });
+    await this.broadcast(
+      GameEvent.StartQuestion,
+      {
+        questionStartCountdown: this.get('questionStartCountdown'),
+      },
+      { includeStages: true },
+    );
 
     this.setCurrentStageTimeout(this.countdownStartQuestion, SHORT_TICK);
   }
 
   private async countdownStartQuestion(): Promise<void> {
     const currentCountdown = this.get('questionStartCountdown');
-    const newCountdown = Math.max(0, currentCountdown - 1);
 
     if (currentCountdown) {
-      this.set('questionStartCountdown', newCountdown);
-      await this.broadcast(GameEvent.CountdownStartQuestion, {
-        questionStartCountdown: newCountdown,
-      });
+      this.set('questionStartCountdown', (prev) => Math.max(0, prev - 1));
+      await this.broadcast(
+        GameEvent.CountdownStartQuestion,
+        {
+          questionStartCountdown: this.get('questionStartCountdown'),
+        },
+        { includeStages: true },
+      );
+
+      this.setCurrentStageTimeout(this.countdownStartQuestion, SHORT_TICK);
     } else {
       this.set('questionStage', Stage.Started);
+      this.questionLoop();
     }
-
-    this.setCurrentStageTimeout(
-      this[newCountdown ? 'countdownStartQuestion' : 'questionLoop'],
-      SHORT_TICK,
-    );
   }
 
   private async questionLoop(): Promise<void> {
     const currentCountdown = this.get('questionCountdown');
-    const newCountdown = Math.max(0, currentCountdown - 1);
 
     if (currentCountdown) {
-      const currentQuestion =
-        this.get('quiz').questions[this.get('currentQuestionIndex')];
+      this.set('questionCountdown', (prev) => Math.max(0, prev - 1));
+      await this.broadcast(
+        GameEvent.QuestionLoop,
+        {
+          currentQuestionIndex: this.get('currentQuestionIndex'),
+          questionCountdown: this.get('questionCountdown'),
+        },
+        { includeStages: true },
+      );
 
-      this.set('questionCountdown', newCountdown);
-      await this.broadcast(GameEvent.QuestionLoop, {
-        currentQuestion,
-        questionCountdown: newCountdown,
-      });
+      this.setCurrentStageTimeout(this.questionLoop, SHORT_TICK);
     } else {
       this.set('questionStage', Stage.Finished);
+      this.finishQuestion();
     }
-
-    this.setCurrentStageTimeout(
-      this[newCountdown ? 'questionLoop' : 'finishQuestion'],
-      SHORT_TICK,
-    );
   }
 
   private async finishQuestion(): Promise<void> {
-    await this.broadcast(GameEvent.FinishQuestion, {});
-    this.set('questionStage', Stage.Started);
+    await this.broadcast(GameEvent.FinishQuestion, {}, { includeStages: true });
 
     this.setCurrentStageTimeout(this.startQuestion, LONG_TICK);
   }
 
   private async finish(): Promise<void> {
-    await this.broadcast(GameEvent.FinishGame, {});
+    await this.broadcast(GameEvent.FinishGame, {}, { includeStages: true });
+
     this.set('currentStageTimeout', null);
   }
 
   private async broadcast<T>(
     event: GameEvent | ChannelEvent,
     data: T,
+    { includeStages }: BroadcastOpts = {},
   ): Promise<void> {
     const code = this.get('code');
-    await this.get('pusher').trigger(`presence-${code}`, event, data);
+    await this.get('pusher').trigger(
+      `presence-${code}`,
+      event,
+      includeStages
+        ? {
+            ...data,
+            gameStage: this.get('gameStage'),
+            questionStage: this.get('questionStage'),
+          }
+        : data,
+    );
   }
 
   private async cleanupPlayers(users: PusherUser[]): Promise<void> {
@@ -238,7 +266,9 @@ export default class GameState extends State<IGameState> {
       ),
     );
 
-    await this.broadcast(ChannelEvent.UpdatePlayers, updatedPlayers);
+    await this.broadcast(ChannelEvent.UpdatePlayers, {
+      players: updatedPlayers,
+    });
   }
 
   private async cleanupGame(users: PusherUser[]) {

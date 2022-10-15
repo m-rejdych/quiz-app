@@ -1,6 +1,5 @@
 import * as trpc from '@trpc/server';
 import { z } from 'zod';
-
 import { ChannelEvent } from '../../types/game/events';
 import createRouter from '../createRouter';
 import GameState from '../../models/state/game';
@@ -20,7 +19,7 @@ const gameRouter = createRouter()
       }
 
       return game.getReadonlyState({
-        exclude: ['pusher', 'cleanupLoopInterval'],
+        exclude: ['pusher', 'cleanupLoopInterval', 'currentStageTimeout'],
       });
     },
   })
@@ -50,7 +49,7 @@ const gameRouter = createRouter()
       const game = state.addGame(code, { code, quiz, pusher });
 
       return game.getReadonlyState({
-        exclude: ['pusher', 'cleanupLoopInterval'],
+        exclude: ['pusher', 'cleanupLoopInterval', 'currentStageTimeout'],
       });
     },
   })
@@ -104,7 +103,7 @@ const gameRouter = createRouter()
   })
   .mutation('start', {
     input: z.string(),
-    resolve: ({ ctx: { userId, state }, input }) => {
+    resolve: async ({ ctx: { userId, state }, input }) => {
       const game = state.getGame(input);
       if (!game) {
         throw new trpc.TRPCError({
@@ -116,7 +115,7 @@ const gameRouter = createRouter()
         throw new trpc.TRPCError({ code: 'FORBIDDEN' });
       }
 
-      game.start();
+      await game.start();
     },
   });
 
