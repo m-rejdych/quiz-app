@@ -7,6 +7,7 @@ import { Heading, Progress, Box } from '@chakra-ui/react';
 import useGameSubscription from '../../../../hooks/useGameSubscription';
 import InitialView from '../../../../components/game/initialView';
 import GameStartingView from '../../../../components/game/startingView';
+import QuestionStrtingView from '../../../../components/question/startingView';
 import { getPropsWithSession } from '../../../../utils/session';
 import { Stage } from '../../../../types/game/events';
 import type { MatchedMembers } from '../../../../types/game/members';
@@ -48,10 +49,17 @@ const Game: NextPage = () => {
     { spectators: {}, players: {} } as MatchedMembers,
   );
 
+  const currentQuestion = data.quiz.questions[data.currentQuestionIndex];
+
   const renderQuestionContent = (): React.ReactNode => {
     switch (data.questionStage) {
       case Stage.Starting:
-        return <Box>Question is starting in {data.questionStartCountdown}</Box>;
+        return (
+          <QuestionStrtingView
+            countdown={data.questionStartCountdown}
+            title={currentQuestion.title}
+          />
+        );
       case Stage.Started:
         return (
           <Box>
