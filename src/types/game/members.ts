@@ -9,4 +9,9 @@ export interface Member {
   info: MemberInfo;
 }
 
+export interface MatchedMembers {
+  spectators: Members;
+  players: Members;
+}
+
 export type Members = Record<string, MemberInfo>;

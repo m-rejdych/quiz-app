@@ -69,12 +69,12 @@ export default class GameState extends State<IGameState> {
       ...state,
     });
 
-    const playersCleanupInterval = setInterval(
+    const cleanupLoopInterval = setInterval(
       this.cleanupLoop.bind(this),
       CLEANUP_LOOP_INTERVAL,
     );
 
-    this.set('cleanupLoopInterval', playersCleanupInterval);
+    this.set('cleanupLoopInterval', cleanupLoopInterval);
   }
 
   getPlayer(id: number): PlayerState | undefined {
@@ -171,6 +171,7 @@ export default class GameState extends State<IGameState> {
       GameEvent.StartQuestion,
       {
         questionStartCountdown: this.get('questionStartCountdown'),
+        currentQuestionIndex: this.get('currentQuestionIndex'),
       },
       { includeStages: true },
     );
@@ -206,7 +207,6 @@ export default class GameState extends State<IGameState> {
       await this.broadcast(
         GameEvent.QuestionLoop,
         {
-          currentQuestionIndex: this.get('currentQuestionIndex'),
           questionCountdown: this.get('questionCountdown'),
         },
         { includeStages: true },

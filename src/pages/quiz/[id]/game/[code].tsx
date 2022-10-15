@@ -6,8 +6,10 @@ import { Heading, Progress, Box } from '@chakra-ui/react';
 
 import useGameSubscription from '../../../../hooks/useGameSubscription';
 import InitialView from '../../../../components/game/initialView';
+import GameStartingView from '../../../../components/game/startingView';
 import { getPropsWithSession } from '../../../../utils/session';
 import { Stage } from '../../../../types/game/events';
+import type { MatchedMembers } from '../../../../types/game/members';
 
 const Game: NextPage = () => {
   const { query } = useRouter();
@@ -29,6 +31,22 @@ const Game: NextPage = () => {
     );
 
   if (!data || !session?.user) return null;
+
+  const matchedMembers = Object.entries(members).reduce(
+    (acc, [id, info]) => {
+      if (
+        data.players &&
+        Object.keys(data.players).some((playerId) => playerId.toString() === id)
+      ) {
+        acc.players[id] = info;
+      } else {
+        acc.spectators[id] = info;
+      }
+
+      return acc;
+    },
+    { spectators: {}, players: {} } as MatchedMembers,
+  );
 
   const renderQuestionContent = (): React.ReactNode => {
     switch (data.questionStage) {
@@ -56,12 +74,17 @@ const Game: NextPage = () => {
         return (
           <InitialView
             data={data}
-            members={members}
+            matchedMembers={matchedMembers}
             session={session as Required<Session>}
           />
         );
       case Stage.Starting:
-        return <Box>Game is starting in {data.gameStartCountdown}</Box>;
+        return (
+          <GameStartingView
+            matchedMembers={matchedMembers}
+            countdown={data.gameStartCountdown}
+          />
+        );
       case Stage.Started:
         return renderQuestionContent();
       case Stage.Finished:

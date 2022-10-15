@@ -6,40 +6,19 @@ import MembersList from './membersList';
 import useAuthError from '../../hooks/useAuthError';
 import { trpc } from '../../utils/trpc';
 import type { GetGameQueryData } from '../../types/game/data';
-import type { Members } from '../../types/game/members';
-
-interface MatchedMembers {
-  spectators: Members;
-  players: Members;
-}
+import type { MatchedMembers } from '../../types/game/members';
 
 interface Props {
   data: GetGameQueryData;
-  members: Members;
+  matchedMembers: MatchedMembers;
   session: Required<Session>;
 }
 
-const InitialView: FC<Props> = ({ data, members, session }) => {
+const InitialView: FC<Props> = ({ data, matchedMembers, session }) => {
   const onError = useAuthError();
   const joinGame = trpc.useMutation('game.join');
   const leaveGame = trpc.useMutation('game.leave');
   const startGame = trpc.useMutation('game.start');
-
-  const matchedMembers = Object.entries(members).reduce(
-    (acc, [id, info]) => {
-      if (
-        data.players &&
-        Object.keys(data.players).some((playerId) => playerId.toString() === id)
-      ) {
-        acc.players[id] = info;
-      } else {
-        acc.spectators[id] = info;
-      }
-
-      return acc;
-    },
-    { spectators: {}, players: {} } as MatchedMembers,
-  );
 
   const isPlayer = session.user.id.toString() in matchedMembers.players;
 
@@ -66,7 +45,7 @@ const InitialView: FC<Props> = ({ data, members, session }) => {
   };
 
   return (
-    <Flex flexDirection="column">
+    <Flex flexDirection="column" height="100%">
       <Flex alignItems="center" justifyContent="space-between">
         <Text fontSize="2xl" fontWeight="bold" mb={6}>
           Game code: <Text as="span">{data?.code}</Text>
