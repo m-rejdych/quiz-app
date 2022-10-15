@@ -1,25 +1,13 @@
 import type { NextPage } from 'next';
+import type { Session } from 'next-auth';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import {
-  Heading,
-  Progress,
-  Text,
-  Flex,
-  Divider,
-  Button,
-  Box,
-} from '@chakra-ui/react';
+import { Heading, Progress, Box } from '@chakra-ui/react';
 
-import { getPropsWithSession } from '../../../../utils/session';
 import useGameSubscription from '../../../../hooks/useGameSubscription';
-import MembersList from '../../../../components/game/membersList';
-import type { Members } from '../../../../types/game/members';
-
-interface MatchedMembers {
-  spectators: Members;
-  players: Members;
-}
+import InitialView from '../../../../components/game/initialView';
+import { getPropsWithSession } from '../../../../utils/session';
+import { Stage } from '../../../../types/game/events';
 
 const Game: NextPage = () => {
   const { query } = useRouter();
@@ -27,10 +15,6 @@ const Game: NextPage = () => {
   const {
     members,
     gameData: { data, error, isLoading },
-    joinGame,
-    leaveGame,
-    startGame,
-    onAuthError,
   } = useGameSubscription(code);
   const { data: session } = useSession();
 
@@ -46,86 +30,48 @@ const Game: NextPage = () => {
 
   if (!data || !session?.user) return null;
 
-  const matchedMembers = Object.entries(members).reduce(
-    (acc, [id, info]) => {
-      if (
-        data.players &&
-        Object.keys(data.players).some((playerId) => playerId.toString() === id)
-      ) {
-        acc.players[id] = info;
-      } else {
-        acc.spectators[id] = info;
-      }
-
-      return acc;
-    },
-    { spectators: {}, players: {} } as MatchedMembers,
-  );
-
-  const isPlayer = session.user.id.toString() in matchedMembers.players;
-
-  const isAuthor = data.quiz?.authorId === session.user.id;
-
-  const togglePlayerState = async (): Promise<void> => {
-    try {
-      if (isPlayer) {
-        await leaveGame.mutateAsync(code);
-      } else {
-        await joinGame.mutateAsync(code);
-      }
-    } catch (error) {
-      onAuthError(error as Parameters<typeof onAuthError>[0]);
+  const renderQuestionContent = (): React.ReactNode => {
+    switch (data.questionStage) {
+      case Stage.Starting:
+        return <Box>Question is starting in {data.questionStartCountdown}</Box>;
+      case Stage.Started:
+        return (
+          <Box>
+            Current question{' '}
+            {data.quiz.questions[data.currentQuestionIndex]?.title}{' '}
+            {data.questionCountdown}
+          </Box>
+        );
+      case Stage.Finished:
+        return <Box>Question has finished</Box>;
+      case Stage.NotStarted:
+      default:
+        return null;
     }
   };
 
-  const handleStartGame = async (): Promise<void> => {
-    try {
-      await startGame.mutateAsync(code);
-    } catch (error) {
-      onAuthError(error as Parameters<typeof onAuthError>[0]);
+  const renderMainContent = (): React.ReactNode => {
+    switch (data.gameStage) {
+      case Stage.NotStarted:
+        return (
+          <InitialView
+            data={data}
+            members={members}
+            session={session as Required<Session>}
+          />
+        );
+      case Stage.Starting:
+        return <Box>Game is starting in {data.gameStartCountdown}</Box>;
+      case Stage.Started:
+        return renderQuestionContent();
+      case Stage.Finished:
+        return <Box>Game has finished</Box>;
+      default:
+        return null;
     }
   };
 
-  return (
-    <Flex flexDirection="column" height="calc(100vh - 128px)">
-      <Flex alignItems="center" justifyContent="space-between">
-        <Text fontSize="2xl" fontWeight="bold" mb={6}>
-          Game code: <Text as="span">{data?.code}</Text>
-        </Text>
-        <Box>
-          <Button
-            colorScheme={isPlayer ? 'red' : 'teal'}
-            onClick={togglePlayerState}
-          >
-            {isPlayer ? 'Leave game' : 'Join game'}
-          </Button>
-          {isAuthor && (
-            <Button
-              colorScheme="yellow"
-              ml={3}
-              disabled={!Object.keys(matchedMembers.players).length}
-              onClick={handleStartGame}
-            >
-              Start game
-            </Button>
-          )}
-        </Box>
-      </Flex>
-      <Flex flex={1}>
-        <MembersList
-          title="Spectators"
-          members={matchedMembers.spectators}
-          flex={1}
-        />
-        <Divider orientation="vertical" mx={4} />
-        <MembersList
-          title="Players"
-          members={matchedMembers.players}
-          flex={1}
-        />
-      </Flex>
-    </Flex>
-  );
+  return <Box height="calc(100vh - 128px)">{renderMainContent()}</Box>;
 };
 
 export const getServerSideProps = getPropsWithSession();

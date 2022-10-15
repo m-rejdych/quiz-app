@@ -24,9 +24,9 @@ export default class State<T extends object> {
     return this.state[key];
   }
 
-  getReadonlyState<U extends keyof T>({
+  getReadonlyState<U extends keyof T = never>({
     exclude,
-  }: GetReadonlyStateOpts<T, U> = {}): Readonly<Partial<T>> {
+  }: GetReadonlyStateOpts<T, U> = {}): Readonly<Omit<T, U>> {
     if (exclude) {
       return Object.entries(this.state)
         .filter(([key]) =>
@@ -36,7 +36,7 @@ export default class State<T extends object> {
         )
         .reduce(
           (acc, [key, value]) => ({ ...acc, [key]: value }),
-          {} as Partial<T>,
+          {} as Omit<T, U>,
         );
     }
 

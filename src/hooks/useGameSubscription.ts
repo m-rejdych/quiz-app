@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react';
 import Pusher, { type PresenceChannel } from 'pusher-js';
-import type { inferProcedureOutput } from '@trpc/server';
 
 import useAuthError from '../hooks/useAuthError';
 import { trpc } from '../utils/trpc';
 import { ChannelEvent, GameEvent } from '../types/game/events';
 import type { Members, Member } from '../types/game/members';
-import type { AppRouter } from '../pages/api/trpc/[trpc]';
-
-type GetGameQueryData = inferProcedureOutput<
-  AppRouter['_def']['queries']['game.get']
->;
+import type { GetGameQueryData } from '../types/game/data';
 
 const EVENTS = [
   ChannelEvent.UpdatePlayers,
@@ -31,9 +26,6 @@ const useGameSubscription = (code: string) => {
     refetchOnWindowFocus: false,
     onError,
   });
-  const joinGame = trpc.useMutation('game.join');
-  const leaveGame = trpc.useMutation('game.leave');
-  const startGame = trpc.useMutation('game.start');
 
   const channelName = `presence-${code}`;
 
@@ -45,6 +37,7 @@ const useGameSubscription = (code: string) => {
   };
 
   const handleEvent = <T extends Partial<GetGameQueryData>>(data: T): void => {
+    console.log(data);
     updateGetGameQueryData(data);
   };
 
@@ -96,10 +89,6 @@ const useGameSubscription = (code: string) => {
   return {
     members,
     gameData,
-    joinGame,
-    leaveGame,
-    startGame,
-    onAuthError: onError,
   };
 };
 
