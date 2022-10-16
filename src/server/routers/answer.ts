@@ -183,6 +183,14 @@ const answerRotuer = createRouter()
         });
       }
 
+      const { questionCountdown, questionStage } = game.getReadonlyState();
+      if (questionStage !== Stage.Started) {
+        throw new trpc.TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Round is not started yet.',
+        });
+      }
+
       const currentQuestion = game.currentQuestion;
       if (!currentQuestion) {
         throw new trpc.TRPCError({
@@ -199,12 +207,10 @@ const answerRotuer = createRouter()
         });
       }
 
-      const { questionCountdown, questionStage } = game.getReadonlyState();
-
-      if (questionStage !== Stage.Started) {
+      if (player.getReadonlyState().questionAnswers[currentQuestion.id]) {
         throw new trpc.TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Round is not started yet.',
+          message: 'You have already answered to this question.',
         });
       }
 

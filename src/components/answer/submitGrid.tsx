@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { type FC, useState } from 'react';
 import type { Answer } from '@prisma/client';
 import { Grid, GridItem, Button } from '@chakra-ui/react';
 
@@ -11,12 +11,14 @@ interface Props {
 }
 
 const SubmitGrid: FC<Props> = ({ answers, code }) => {
-  const onError = useAuthError();
+  const [isAnswered, setIsAnswered] = useState(false);
   const submitAnswer = trpc.useMutation('answer.submit');
+  const onError = useAuthError();
 
   const handleSubmit = async (id: number): Promise<void> => {
     try {
       await submitAnswer.mutateAsync({ code, answerId: id });
+      setIsAnswered(true);
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
     }
@@ -37,18 +39,20 @@ const SubmitGrid: FC<Props> = ({ answers, code }) => {
       templateRows={`repeat(${rowsCount}, 1fr)`}
       height="100%"
     >
-      {answers.map(({ id, content }) => (
-        <GridItem key={id} width="100%" height="100%">
-          <Button
-            width="100%"
-            height="100%"
-            colorScheme="gray"
-            onClick={() => handleSubmit(id)}
-          >
-            {content}
-          </Button>
-        </GridItem>
-      ))}
+      {isAnswered
+        ? null
+        : answers.map(({ id, content }) => (
+            <GridItem key={id} width="100%" height="100%">
+              <Button
+                width="100%"
+                height="100%"
+                colorScheme="gray"
+                onClick={() => handleSubmit(id)}
+              >
+                {content}
+              </Button>
+            </GridItem>
+          ))}
     </Grid>
   );
 };
