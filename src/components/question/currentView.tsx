@@ -10,6 +10,7 @@ interface Props {
   countdown: number;
   answers: Pick<Answer, 'id' | 'content'>[];
   isPlayer: boolean;
+  isAnswered: boolean;
 }
 
 const CurrentQuestionView: FC<Props> = ({ title, countdown, ...rest }) => (

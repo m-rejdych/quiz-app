@@ -9,10 +9,16 @@ interface Props {
   code: string;
   answers: Pick<Answer, 'id' | 'content'>[];
   isPlayer: boolean;
+  isAnswered: boolean;
 }
 
-const SubmitGrid: FC<Props> = ({ answers, code, isPlayer }) => {
-  const [isAnswered, setIsAnswered] = useState(false);
+const SubmitGrid: FC<Props> = ({
+  answers,
+  code,
+  isPlayer,
+  isAnswered: initIsAnswered,
+}) => {
+  const [isAnswered, setIsAnswered] = useState(initIsAnswered);
   const submitAnswer = trpc.useMutation('answer.submit');
   const onError = useAuthError();
 

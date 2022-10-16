@@ -82,6 +82,9 @@ const Game: NextPage = () => {
             answers={currentQuestion.answers}
             countdown={questionCountdown}
             isPlayer={session.user!.id.toString() in matchedMembers.players}
+            isAnswered={
+              !!players[session.user!.id]?.questionAnswers[currentQuestion.id]
+            }
           />
         );
       case Stage.Finished:
