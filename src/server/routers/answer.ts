@@ -2,6 +2,7 @@ import * as trpc from '@trpc/server';
 import { z } from 'zod';
 
 import createRouter from '../createRouter';
+import { Stage } from '../../types/game/events';
 
 const answerRotuer = createRouter()
   .middleware(({ ctx, next }) => {
@@ -158,6 +159,60 @@ const answerRotuer = createRouter()
       }
 
       return true;
+    },
+  })
+  .mutation('submit', {
+    input: z.object({
+      code: z.string(),
+      answerId: z.number(),
+    }),
+    resolve: async ({ ctx: { state, userId }, input: { code, answerId } }) => {
+      const game = state.getGame(code);
+      if (!game) {
+        throw new trpc.TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Game not found.',
+        });
+      }
+
+      const player = game.getPlayer(userId);
+      if (!player) {
+        throw new trpc.TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You are not a player in this game.',
+        });
+      }
+
+      const currentQuestion = game.currentQuestion;
+      if (!currentQuestion) {
+        throw new trpc.TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Current question not available.',
+        });
+      }
+
+      const answer = currentQuestion.answers.find(({ id }) => id === answerId);
+      if (!answer) {
+        throw new trpc.TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This answer does not exist.',
+        });
+      }
+
+      const { questionCountdown, questionStage } = game.getReadonlyState();
+
+      if (questionStage !== Stage.Started) {
+        throw new trpc.TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Round is not started yet.',
+        });
+      }
+
+      player.submitAnswer(currentQuestion.id, {
+        answerId,
+        timeLeft: questionCountdown,
+        isCorrect: answer.isCorrect,
+      });
     },
   });
 

@@ -5,6 +5,7 @@ import State from './state';
 interface QuestionAnswer {
   answerId: number;
   timeLeft: number;
+  isCorrect: boolean;
 }
 
 export interface InitPlayerState {
@@ -25,14 +26,22 @@ export default class PlayerState extends State<IPlayerState> {
     super(state);
   }
 
-  get score() {
-    return Object.values(this.get('questionAnswers')).reduce(
-      (total, answer) => total + (answer ? calculateScore(answer.timeLeft) : 0),
-      0,
-    );
+  submitAnswer(questionId: number, answer: QuestionAnswer): void {
+    const questions = this.get('questionAnswers');
+    if (!(questionId in questions)) return;
+
+    this.set('questionAnswers', (prev) => ({ ...prev, [questionId]: answer }));
   }
 
-  static serialize(players: Record<number, PlayerState>): SerializedPlayer {
+  get score(): number {
+    return Object.values(this.get('questionAnswers'))
+      .filter((answer) => answer?.isCorrect)
+      .reduce((total, answer) => total + calculateScore(answer!.timeLeft), 0);
+  }
+
+  static serializePlayers(
+    players: Record<number, PlayerState>,
+  ): SerializedPlayer {
     return Object.entries(players).reduce(
       (acc, [id, player]) => ({
         ...acc,

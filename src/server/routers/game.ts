@@ -18,13 +18,23 @@ const gameRouter = createRouter()
         throw new trpc.TRPCError({ code: 'NOT_FOUND' });
       }
 
-      const readonlyGameState = game.getReadonlyState({
-        exclude: ['pusher', 'cleanupLoopInterval', 'currentStageTimeout'],
+      const {
+        quiz: { authorId },
+        ...readonlyGameState
+      } = game.getReadonlyState({
+        exclude: [
+          'pusher',
+          'cleanupLoopInterval',
+          'currentStageTimeout',
+          'currentQuestionIndex',
+        ],
       });
 
       return {
         ...readonlyGameState,
-        players: PlayerState.serialize(readonlyGameState.players),
+        players: PlayerState.serializePlayers(readonlyGameState.players),
+        authorId,
+        currentQuestion: game.serializedCurrentQuestion,
       };
     },
   })
@@ -37,7 +47,9 @@ const gameRouter = createRouter()
         where: { id: quizId },
         include: {
           questions: {
-            include: { answers: { select: { id: true, content: true } } },
+            include: {
+              answers: { select: { id: true, content: true, isCorrect: true } },
+            },
           },
           author: { select: { id: true, username: true } },
         },
@@ -55,9 +67,19 @@ const gameRouter = createRouter()
       const code = GameState.generateCode();
       const game = state.addGame(code, { code, quiz, pusher });
 
-      return game.getReadonlyState({
-        exclude: ['pusher', 'cleanupLoopInterval', 'currentStageTimeout'],
-      });
+      return {
+        ...game.getReadonlyState({
+          exclude: [
+            'pusher',
+            'cleanupLoopInterval',
+            'currentStageTimeout',
+            'currentQuestionIndex',
+            'quiz',
+          ],
+        }),
+        authorId: quiz.authorId,
+        currentQuestion: game.serializedCurrentQuestion,
+      };
     },
   })
   .mutation('join', {
@@ -95,7 +117,7 @@ const gameRouter = createRouter()
           .quiz.questions.reduce((acc, { id }) => ({ ...acc, [id]: null }), {}),
       });
 
-      return PlayerState.serialize(game.getReadonlyState().players);
+      return PlayerState.serializePlayers(game.getReadonlyState().players);
     },
   })
   .mutation('leave', {
@@ -110,7 +132,7 @@ const gameRouter = createRouter()
       }
       await game.removePlayer(userId);
 
-      return PlayerState.serialize(game.getReadonlyState().players);
+      return PlayerState.serializePlayers(game.getReadonlyState().players);
     },
   })
   .mutation('start', {

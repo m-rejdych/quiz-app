@@ -27,6 +27,7 @@ const useGameSubscription = (code: string) => {
     onError,
   });
 
+  console.log(gameData.data);
   const channelName = `presence-${code}`;
 
   const invalidateGetGameQuery = (): Promise<void> =>

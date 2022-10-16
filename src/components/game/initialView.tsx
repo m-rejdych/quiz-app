@@ -22,7 +22,7 @@ const InitialView: FC<Props> = ({ data, matchedMembers, session }) => {
 
   const isPlayer = session.user.id.toString() in matchedMembers.players;
 
-  const isAuthor = data.quiz?.authorId === session.user.id;
+  const isAuthor = data.authorId === session.user.id;
 
   const togglePlayerState = async (): Promise<void> => {
     try {

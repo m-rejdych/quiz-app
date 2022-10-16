@@ -50,23 +50,25 @@ const Game: NextPage = () => {
     { spectators: {}, players: {} } as MatchedMembers,
   );
 
-  const currentQuestion = data.quiz.questions[data.currentQuestionIndex];
-
   const renderQuestionContent = (): React.ReactNode => {
+    const { currentQuestion, questionStartCountdown, questionCountdown } = data;
+    if (!currentQuestion) return null;
+
     switch (data.questionStage) {
       case Stage.Starting:
         return (
           <QuestionStrtingView
-            countdown={data.questionStartCountdown}
+            countdown={questionStartCountdown}
             title={currentQuestion.title}
           />
         );
       case Stage.Started:
         return (
           <CurrentQuestionView
+            code={data.code}
             title={currentQuestion.title}
             answers={currentQuestion.answers}
-            countdown={data.questionCountdown}
+            countdown={questionCountdown}
           />
         );
       case Stage.Finished:

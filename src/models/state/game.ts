@@ -5,15 +5,24 @@ import type Pusher from 'pusher';
 import State from './state';
 import PlayerState, { type InitPlayerState } from './player';
 import { GameEvent, ChannelEvent, Stage } from '../../types/game/events';
+import type UnwrapArrayItem from '../../types/common/UnwrapArrayItem';
 
 type Quiz = Prisma.QuizGetPayload<{
   include: {
     questions: {
-      include: { answers: { select: { id: true; content: true } } };
+      include: {
+        answers: { select: { id: true; content: true; isCorrect: true } };
+      };
     };
     author: { select: { id: true; username: true } };
   };
 }>;
+
+type Question = UnwrapArrayItem<InitGameState['quiz']['questions']>;
+
+interface SerializedQuestion extends Omit<Question, 'answers'> {
+  answers: Omit<UnwrapArrayItem<Question['answers']>, 'isCorrect'>[];
+}
 
 interface PusherUser {
   id: string;
@@ -79,6 +88,21 @@ export default class GameState extends State<IGameState> {
     this.set('cleanupLoopInterval', cleanupLoopInterval);
   }
 
+  get currentQuestion(): Question | null {
+    return this.get('quiz').questions[this.get('currentQuestionIndex')] ?? null;
+  }
+
+  get serializedCurrentQuestion(): SerializedQuestion | null {
+    const currentQuestion =
+      this.get('quiz').questions[this.get('currentQuestionIndex')];
+    if (!currentQuestion) return null;
+
+    return {
+      ...currentQuestion,
+      answers: currentQuestion.answers.map(({ isCorrect, ...rest }) => rest),
+    };
+  }
+
   getPlayer(id: number): PlayerState | undefined {
     return this.get('players')[id];
   }
@@ -94,7 +118,7 @@ export default class GameState extends State<IGameState> {
     this.set('players', (players) => ({ ...players, [id]: player }));
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: PlayerState.serialize(this.get('players')),
+      players: PlayerState.serializePlayers(this.get('players')),
     });
 
     return player;
@@ -108,7 +132,7 @@ export default class GameState extends State<IGameState> {
     this.set('players', currentPlayers);
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: PlayerState.serialize(currentPlayers),
+      players: PlayerState.serializePlayers(currentPlayers),
     });
 
     return true;
@@ -174,6 +198,7 @@ export default class GameState extends State<IGameState> {
       {
         questionStartCountdown: this.get('questionStartCountdown'),
         currentQuestionIndex: this.get('currentQuestionIndex'),
+        currentQuestion: this.serializedCurrentQuestion,
       },
       { includeStages: true },
     );
@@ -222,7 +247,11 @@ export default class GameState extends State<IGameState> {
   }
 
   private async finishQuestion(): Promise<void> {
-    await this.broadcast(GameEvent.FinishQuestion, {}, { includeStages: true });
+    await this.broadcast(
+      GameEvent.FinishQuestion,
+      { players: PlayerState.serializePlayers(this.get('players')) },
+      { includeStages: true },
+    );
 
     this.setCurrentStageTimeout(this.startQuestion, LONG_TICK);
   }
@@ -269,7 +298,7 @@ export default class GameState extends State<IGameState> {
     );
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: PlayerState.serialize(updatedPlayers),
+      players: PlayerState.serializePlayers(updatedPlayers),
     });
   }
 
