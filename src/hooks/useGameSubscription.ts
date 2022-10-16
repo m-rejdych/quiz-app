@@ -33,10 +33,14 @@ const useGameSubscription = (code: string) => {
     invalidateQueries(['game.get', code]);
 
   const updateGetGameQueryData = (newData: Partial<GetGameQueryData>): void => {
-    setQueryData(['game.get', code], prev => ({
-      ...prev,
-      ...newData,
-    }) as GetGameQueryData);
+    setQueryData(
+      ['game.get', code],
+      (prev) =>
+        ({
+          ...prev,
+          ...newData,
+        } as GetGameQueryData),
+    );
   };
 
   const handleEvent = <T extends Partial<GetGameQueryData>>(data: T): void => {

@@ -34,6 +34,7 @@ export default class AppState extends State<IAppState> {
       onClean: this.removeGame.bind(this),
     });
     this.set('games', (games) => ({ ...games, [code]: game }));
+
     return game;
   }
 
@@ -52,6 +53,7 @@ export default class AppState extends State<IAppState> {
 
     delete currentGames[code];
     this.set('games', currentGames);
+
     return true;
   }
 }

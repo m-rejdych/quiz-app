@@ -94,7 +94,7 @@ export default class GameState extends State<IGameState> {
     this.set('players', (players) => ({ ...players, [id]: player }));
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: this.get('players'),
+      players: PlayerState.serialize(this.get('players')),
     });
 
     return player;
@@ -108,7 +108,7 @@ export default class GameState extends State<IGameState> {
     this.set('players', currentPlayers);
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: currentPlayers,
+      players: PlayerState.serialize(currentPlayers),
     });
 
     return true;
@@ -269,7 +269,7 @@ export default class GameState extends State<IGameState> {
     );
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: updatedPlayers,
+      players: PlayerState.serialize(updatedPlayers),
     });
   }
 

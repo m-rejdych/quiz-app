@@ -2,6 +2,7 @@ import * as trpc from '@trpc/server';
 import { z } from 'zod';
 import createRouter from '../createRouter';
 import GameState from '../../models/state/game';
+import PlayerState from '../../models/state/player';
 
 const gameRouter = createRouter()
   .middleware(({ ctx, next }) => {
@@ -17,9 +18,14 @@ const gameRouter = createRouter()
         throw new trpc.TRPCError({ code: 'NOT_FOUND' });
       }
 
-      return game.getReadonlyState({
+      const readonlyGameState = game.getReadonlyState({
         exclude: ['pusher', 'cleanupLoopInterval', 'currentStageTimeout'],
       });
+
+      return {
+        ...readonlyGameState,
+        players: PlayerState.serialize(readonlyGameState.players),
+      };
     },
   })
   .mutation('create', {
@@ -82,9 +88,14 @@ const gameRouter = createRouter()
           message: 'Player already in game.',
         });
       }
-      await game.addPlayer(userId, { user });
+      await game.addPlayer(userId, {
+        user,
+        questionAnswers: game
+          .getReadonlyState()
+          .quiz.questions.reduce((acc, { id }) => ({ ...acc, [id]: null }), {}),
+      });
 
-      return game.getReadonlyState().players;
+      return PlayerState.serialize(game.getReadonlyState().players);
     },
   })
   .mutation('leave', {
@@ -99,7 +110,7 @@ const gameRouter = createRouter()
       }
       await game.removePlayer(userId);
 
-      return game.getReadonlyState().players;
+      return PlayerState.serialize(game.getReadonlyState().players);
     },
   })
   .mutation('start', {
