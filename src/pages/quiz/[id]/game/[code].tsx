@@ -118,12 +118,7 @@ const Game: NextPage = () => {
       case Stage.Started:
         return renderQuestionContent();
       case Stage.Finished:
-        return (
-          <GameFinishedView
-            players={players}
-            currentQuestion={currentQuestion}
-          />
-        );
+        return <GameFinishedView players={players} />;
       default:
         return null;
     }

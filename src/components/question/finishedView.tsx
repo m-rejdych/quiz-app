@@ -11,6 +11,7 @@ interface Props {
 const FinishedView: FC<Props> = (props) => (
   <Leaderboard
     {...props}
+    heading="Round is up!"
     containerProps={{ height: '100%', justifyContent: 'center' }}
   />
 );

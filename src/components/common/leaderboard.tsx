@@ -9,6 +9,7 @@ import {
   Td,
   Flex,
   Heading,
+  Text,
   FlexProps,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
@@ -21,12 +22,14 @@ interface Props {
   players: Players;
   currentQuestion?: GetGameQueryData['currentQuestion'];
   containerProps?: FlexProps;
+  heading?: string;
 }
 
 const Leaderboard: FC<Props> = ({
   players,
   currentQuestion,
   containerProps,
+  heading,
 }) => {
   const getIcon = (
     answers: Players[keyof Players]['questionAnswers'],
@@ -43,9 +46,9 @@ const Leaderboard: FC<Props> = ({
   return (
     <Flex flexDirection="column" {...containerProps}>
       <Heading mb={6} alignSelf="center">
-        Leaderboard
+        {heading || 'Leaderboard'}
       </Heading>
-      <TableContainer>
+      <TableContainer maxHeight="70vh">
         <Table variant="simple">
           <Thead>
             <Tr>
@@ -78,6 +81,11 @@ const Leaderboard: FC<Props> = ({
           </Tbody>
         </Table>
       </TableContainer>
+      {heading && (
+        <Text fontSize="2xl" alignSelf="center" mt={6}>
+          Leaderboard
+        </Text>
+      )}
     </Flex>
   );
 };
