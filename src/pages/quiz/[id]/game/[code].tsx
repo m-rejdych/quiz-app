@@ -36,6 +36,17 @@ const Game: NextPage = () => {
 
   if (!data || !session?.user) return null;
 
+  const {
+    currentQuestion,
+    questionStartCountdown,
+    questionCountdown,
+    players,
+    gameStage,
+    authorId,
+    questionStage,
+    gameStartCountdown,
+  } = data;
+
   const matchedMembers = Object.entries(members).reduce(
     (acc, [id, info]) => {
       if (
@@ -53,14 +64,6 @@ const Game: NextPage = () => {
   );
 
   const renderQuestionContent = (): React.ReactNode => {
-    const {
-      currentQuestion,
-      questionStartCountdown,
-      questionCountdown,
-      players,
-      code,
-      questionStage,
-    } = data;
     if (!currentQuestion) return null;
 
     switch (questionStage) {
@@ -95,15 +98,6 @@ const Game: NextPage = () => {
   };
 
   const renderMainContent = (): React.ReactNode => {
-    const {
-      gameStartCountdown,
-      players,
-      currentQuestion,
-      authorId,
-      code,
-      gameStage,
-    } = data;
-
     switch (gameStage) {
       case Stage.NotStarted:
         return (
