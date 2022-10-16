@@ -9,12 +9,13 @@ import type { GetGameQueryData } from '../../types/game/data';
 import type { MatchedMembers } from '../../types/game/members';
 
 interface Props {
-  data: GetGameQueryData;
+  authorId: GetGameQueryData['authorId'];
+  code: GetGameQueryData['code'];
   matchedMembers: MatchedMembers;
   session: Required<Session>;
 }
 
-const InitialView: FC<Props> = ({ data, matchedMembers, session }) => {
+const InitialView: FC<Props> = ({ authorId, code, matchedMembers, session }) => {
   const onError = useAuthError();
   const joinGame = trpc.useMutation('game.join');
   const leaveGame = trpc.useMutation('game.leave');
@@ -22,14 +23,14 @@ const InitialView: FC<Props> = ({ data, matchedMembers, session }) => {
 
   const isPlayer = session.user.id.toString() in matchedMembers.players;
 
-  const isAuthor = data.authorId === session.user.id;
+  const isAuthor = authorId === session.user.id;
 
   const togglePlayerState = async (): Promise<void> => {
     try {
       if (isPlayer) {
-        await leaveGame.mutateAsync(data.code);
+        await leaveGame.mutateAsync(code);
       } else {
-        await joinGame.mutateAsync(data.code);
+        await joinGame.mutateAsync(code);
       }
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
@@ -38,7 +39,7 @@ const InitialView: FC<Props> = ({ data, matchedMembers, session }) => {
 
   const handleStartGame = async (): Promise<void> => {
     try {
-      await startGame.mutateAsync(data.code);
+      await startGame.mutateAsync(code);
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
     }
@@ -48,7 +49,7 @@ const InitialView: FC<Props> = ({ data, matchedMembers, session }) => {
     <Flex flexDirection="column" height="100%">
       <Flex alignItems="center" justifyContent="space-between">
         <Text fontSize="2xl" fontWeight="bold" mb={6}>
-          Game code: <Text as="span">{data?.code}</Text>
+          Game code: <Text as="span">{code}</Text>
         </Text>
         <Box>
           <Button

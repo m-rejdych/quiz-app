@@ -15,7 +15,10 @@ export interface InitPlayerState {
 
 type IPlayerState = InitPlayerState;
 
-type SerializedPlayer = Record<number, PlayerState & { score: number }>;
+type SerializedPlayer = Record<
+  number,
+  Readonly<InitPlayerState> & { score: number }
+>;
 
 const SCORE_FACTOR = 100;
 

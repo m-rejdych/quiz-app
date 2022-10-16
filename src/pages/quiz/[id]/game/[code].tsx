@@ -5,10 +5,12 @@ import { useSession } from 'next-auth/react';
 import { Heading, Progress, Box } from '@chakra-ui/react';
 
 import useGameSubscription from '../../../../hooks/useGameSubscription';
-import InitialView from '../../../../components/game/initialView';
+import GameInitialView from '../../../../components/game/initialView';
 import GameStartingView from '../../../../components/game/startingView';
+import GameFinishedView from '../../../../components/game/finishedView';
 import QuestionStrtingView from '../../../../components/question/startingView';
-import CurrentQuestionView from '../../../../components/question/currentView';
+import QuestionCurrentView from '../../../../components/question/currentView';
+import QuestionFinishedView from '../../../../components/question/finishedView';
 import { getPropsWithSession } from '../../../../utils/session';
 import { Stage } from '../../../../types/game/events';
 import type { MatchedMembers } from '../../../../types/game/members';
@@ -51,10 +53,17 @@ const Game: NextPage = () => {
   );
 
   const renderQuestionContent = (): React.ReactNode => {
-    const { currentQuestion, questionStartCountdown, questionCountdown } = data;
+    const {
+      currentQuestion,
+      questionStartCountdown,
+      questionCountdown,
+      players,
+      code,
+      questionStage,
+    } = data;
     if (!currentQuestion) return null;
 
-    switch (data.questionStage) {
+    switch (questionStage) {
       case Stage.Starting:
         return (
           <QuestionStrtingView
@@ -64,15 +73,20 @@ const Game: NextPage = () => {
         );
       case Stage.Started:
         return (
-          <CurrentQuestionView
-            code={data.code}
+          <QuestionCurrentView
+            code={code}
             title={currentQuestion.title}
             answers={currentQuestion.answers}
             countdown={questionCountdown}
           />
         );
       case Stage.Finished:
-        return <Box>Question has finished</Box>;
+        return (
+          <QuestionFinishedView
+            players={players}
+            currentQuestion={currentQuestion}
+          />
+        );
       case Stage.NotStarted:
       default:
         return null;
@@ -80,11 +94,21 @@ const Game: NextPage = () => {
   };
 
   const renderMainContent = (): React.ReactNode => {
-    switch (data.gameStage) {
+    const {
+      gameStartCountdown,
+      players,
+      currentQuestion,
+      authorId,
+      code,
+      gameStage,
+    } = data;
+
+    switch (gameStage) {
       case Stage.NotStarted:
         return (
-          <InitialView
-            data={data}
+          <GameInitialView
+            code={code}
+            authorId={authorId}
             matchedMembers={matchedMembers}
             session={session as Required<Session>}
           />
@@ -93,13 +117,18 @@ const Game: NextPage = () => {
         return (
           <GameStartingView
             matchedMembers={matchedMembers}
-            countdown={data.gameStartCountdown}
+            countdown={gameStartCountdown}
           />
         );
       case Stage.Started:
         return renderQuestionContent();
       case Stage.Finished:
-        return <Box>Game has finished</Box>;
+        return (
+          <GameFinishedView
+            players={players}
+            currentQuestion={currentQuestion}
+          />
+        );
       default:
         return null;
     }
