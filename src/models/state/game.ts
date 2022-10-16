@@ -57,7 +57,7 @@ const GAME_START_COUNTDOWN = 5;
 const QUESTION_START_COUNTDOWN = 3;
 const QUESTION_COUNTDOWN = 11;
 const CLEANUP_LOOP_INTERVAL = 10000;
-const GAME_CLEANUP_TIMEOUT = 5000;
+const CLEANUP_TIMEOUT = 5000;
 const SHORT_TICK = 1000;
 const LONG_TICK = 5000;
 
@@ -281,7 +281,9 @@ export default class GameState extends State<IGameState> {
     );
   }
 
-  private async cleanupPlayers(users: PusherUser[]): Promise<void> {
+  private async cleanupPlayers(fetchedUsers?: PusherUser[]): Promise<void> {
+    const users = fetchedUsers ?? (await this.fetchUsers());
+
     const currentPlayers = this.get('players');
     const cleanedPlayers = Object.entries(currentPlayers).filter(([playerId]) =>
       users.some(({ id }) => id === playerId.toString()),
@@ -289,29 +291,37 @@ export default class GameState extends State<IGameState> {
 
     if (cleanedPlayers.length === Object.keys(currentPlayers).length) return;
 
-    const updatedPlayers = this.set(
-      'players',
-      cleanedPlayers.reduce(
-        (acc, [id, player]) => ({ ...acc, [id]: player }),
-        {},
-      ),
-    );
+    if (fetchedUsers) {
+      setTimeout(this.cleanupPlayers.bind(this), CLEANUP_TIMEOUT);
+    } else {
+      const updatedPlayers = this.set(
+        'players',
+        cleanedPlayers.reduce(
+          (acc, [id, player]) => ({ ...acc, [id]: player }),
+          {},
+        ),
+      );
 
-    await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: PlayerState.serializePlayers(updatedPlayers),
-    });
+      await this.broadcast(ChannelEvent.UpdatePlayers, {
+        players: PlayerState.serializePlayers(updatedPlayers),
+      });
+    }
   }
 
-  private async cleanupGame(users: PusherUser[]) {
+  private async cleanupGame() {
+    const users = await this.fetchUsers();
     if (users.length) return;
+
     this.get('onClean')(this.get('code'));
   }
 
   private async cleanupLoop(): Promise<void> {
     const users = await this.fetchUsers();
+
     this.cleanupPlayers(users);
-    if (!users.length)
-      setTimeout(this.cleanupGame.bind(this, users), GAME_CLEANUP_TIMEOUT);
+    if (!users.length) {
+      setTimeout(this.cleanupGame.bind(this), CLEANUP_TIMEOUT);
+    }
   }
 
   private async fetchUsers(): Promise<PusherUser[]> {

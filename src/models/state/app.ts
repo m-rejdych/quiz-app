@@ -16,6 +16,9 @@ const BASE_STATE: IAppState = {
 export default class AppState extends State<IAppState> {
   constructor() {
     super(BASE_STATE);
+    setInterval(() => {
+      console.log('games count', Object.keys(this.get('games')).length);
+    }, 5000);
   }
 
   getGame(code: keyof Games): GameState | undefined {

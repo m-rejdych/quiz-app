@@ -9,6 +9,7 @@ interface Props {
   title: string;
   countdown: number;
   answers: Pick<Answer, 'id' | 'content'>[];
+  isPlayer: boolean;
 }
 
 const CurrentQuestionView: FC<Props> = ({ title, countdown, ...rest }) => (

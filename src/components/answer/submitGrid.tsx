@@ -8,14 +8,17 @@ import { trpc } from '../../utils/trpc';
 interface Props {
   code: string;
   answers: Pick<Answer, 'id' | 'content'>[];
+  isPlayer: boolean;
 }
 
-const SubmitGrid: FC<Props> = ({ answers, code }) => {
+const SubmitGrid: FC<Props> = ({ answers, code, isPlayer }) => {
   const [isAnswered, setIsAnswered] = useState(false);
   const submitAnswer = trpc.useMutation('answer.submit');
   const onError = useAuthError();
 
   const handleSubmit = async (id: number): Promise<void> => {
+    if (!isPlayer) return;
+
     try {
       await submitAnswer.mutateAsync({ code, answerId: id });
       setIsAnswered(true);
@@ -47,6 +50,7 @@ const SubmitGrid: FC<Props> = ({ answers, code }) => {
                 width="100%"
                 height="100%"
                 colorScheme="gray"
+                cursor={isPlayer ? 'pointer' : 'default'}
                 onClick={() => handleSubmit(id)}
               >
                 {content}
