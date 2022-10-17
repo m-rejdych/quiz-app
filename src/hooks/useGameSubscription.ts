@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import Pusher, { type PresenceChannel } from 'pusher-js';
 
 import useAuthError from '../hooks/useAuthError';
@@ -6,6 +7,12 @@ import { trpc } from '../utils/trpc';
 import { ChannelEvent, GameEvent } from '../types/game/events';
 import type { Members, Member } from '../types/game/members';
 import type { GetGameQueryData } from '../types/game/data';
+
+interface FinishGameData {
+  gameStage: GetGameQueryData['gameStage'];
+  questionStage: GetGameQueryData['questionStage'];
+  gameResultId: number;
+}
 
 const EVENTS = [
   ChannelEvent.UpdatePlayers,
@@ -15,10 +22,10 @@ const EVENTS = [
   GameEvent.CountdownStartQuestion,
   GameEvent.QuestionLoop,
   GameEvent.FinishQuestion,
-  GameEvent.FinishGame,
 ] as const;
 
-const useGameSubscription = (code: string) => {
+const useGameSubscription = (code: string, quizId: number) => {
+  const router = useRouter();
   const [members, setMembers] = useState<Members>({});
   const { invalidateQueries, setQueryData } = trpc.useContext();
   const onError = useAuthError();
@@ -27,7 +34,6 @@ const useGameSubscription = (code: string) => {
     onError,
   });
 
-  console.log(gameData.data);
   const channelName = `presence-${code}`;
 
   const invalidateGetGameQuery = (): Promise<void> =>
@@ -81,6 +87,12 @@ const useGameSubscription = (code: string) => {
 
     EVENTS.forEach((event) => {
       channel.bind(event, handleEvent);
+    });
+
+    channel.bind(GameEvent.FinishGame, async (data: FinishGameData) => {
+      const { gameResultId, ...rest } = data;
+      handleEvent(rest);
+      await router.push(`/quiz/${quizId}/result/${gameResultId}`);
     });
 
     return () => {

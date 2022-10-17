@@ -1,10 +1,11 @@
 import * as trpc from '@trpc/server';
-import { Prisma } from '@prisma/client';
+import { Prisma, type PrismaPromise } from '@prisma/client';
 import type Pusher from 'pusher';
 
 import State from './state';
 import PlayerState, { type InitPlayerState } from './player';
 import { GameEvent, ChannelEvent, Stage } from '../../types/game/events';
+import { prisma } from '../../server/prisma';
 import type UnwrapArrayItem from '../../types/common/UnwrapArrayItem';
 
 type Quiz = Prisma.QuizGetPayload<{
@@ -161,105 +162,170 @@ export default class GameState extends State<IGameState> {
   }
 
   private async countdownStartGame(): Promise<void> {
-    const currentCountdown = this.get('gameStartCountdown');
+    try {
+      const currentCountdown = this.get('gameStartCountdown');
 
-    if (currentCountdown) {
-      this.set('gameStartCountdown', (prev) => Math.max(0, prev - 1));
-      await this.broadcast(
-        GameEvent.CountdownStartGame,
-        {
-          gameStartCountdown: this.get('gameStartCountdown'),
-        },
-        { includeStages: true },
-      );
+      if (currentCountdown) {
+        this.set('gameStartCountdown', (prev) => Math.max(0, prev - 1));
+        await this.broadcast(
+          GameEvent.CountdownStartGame,
+          {
+            gameStartCountdown: this.get('gameStartCountdown'),
+          },
+          { includeStages: true },
+        );
 
-      this.setCurrentStageTimeout(this.countdownStartGame, SHORT_TICK);
-    } else {
-      this.set('gameStage', Stage.Started);
-      this.startQuestion();
+        this.setCurrentStageTimeout(this.countdownStartGame, SHORT_TICK);
+      } else {
+        this.set('gameStage', Stage.Started);
+        this.startQuestion();
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
   private async startQuestion(): Promise<void> {
-    const { questions } = this.get('quiz');
+    try {
+      const { questions } = this.get('quiz');
 
-    if (!questions[this.get('currentQuestionIndex') + 1]) {
-      this.set('gameStage', Stage.Finished);
-      return this.finish();
-    }
+      if (!questions[this.get('currentQuestionIndex') + 1]) {
+        this.set('gameStage', Stage.Finished);
+        return this.finish();
+      }
 
-    this.set('currentQuestionIndex', (prev) => prev + 1);
-    this.set('questionStage', Stage.Starting);
-    this.set('questionStartCountdown', QUESTION_START_COUNTDOWN);
-    this.set('questionCountdown', QUESTION_COUNTDOWN);
+      this.set('currentQuestionIndex', (prev) => prev + 1);
+      this.set('questionStage', Stage.Starting);
+      this.set('questionStartCountdown', QUESTION_START_COUNTDOWN);
+      this.set('questionCountdown', QUESTION_COUNTDOWN);
 
-    await this.broadcast(
-      GameEvent.StartQuestion,
-      {
-        questionStartCountdown: this.get('questionStartCountdown'),
-        currentQuestionIndex: this.get('currentQuestionIndex'),
-        currentQuestion: this.serializedCurrentQuestion,
-      },
-      { includeStages: true },
-    );
-
-    this.setCurrentStageTimeout(this.countdownStartQuestion, SHORT_TICK);
-  }
-
-  private async countdownStartQuestion(): Promise<void> {
-    const currentCountdown = this.get('questionStartCountdown');
-
-    if (currentCountdown) {
-      this.set('questionStartCountdown', (prev) => Math.max(0, prev - 1));
       await this.broadcast(
-        GameEvent.CountdownStartQuestion,
+        GameEvent.StartQuestion,
         {
           questionStartCountdown: this.get('questionStartCountdown'),
+          currentQuestionIndex: this.get('currentQuestionIndex'),
+          currentQuestion: this.serializedCurrentQuestion,
         },
         { includeStages: true },
       );
 
       this.setCurrentStageTimeout(this.countdownStartQuestion, SHORT_TICK);
-    } else {
-      this.set('questionStage', Stage.Started);
-      this.questionLoop();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  private async countdownStartQuestion(): Promise<void> {
+    try {
+      const currentCountdown = this.get('questionStartCountdown');
+
+      if (currentCountdown) {
+        this.set('questionStartCountdown', (prev) => Math.max(0, prev - 1));
+        await this.broadcast(
+          GameEvent.CountdownStartQuestion,
+          {
+            questionStartCountdown: this.get('questionStartCountdown'),
+          },
+          { includeStages: true },
+        );
+
+        this.setCurrentStageTimeout(this.countdownStartQuestion, SHORT_TICK);
+      } else {
+        this.set('questionStage', Stage.Started);
+        this.questionLoop();
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
   private async questionLoop(): Promise<void> {
-    const currentCountdown = this.get('questionCountdown');
+    try {
+      const currentCountdown = this.get('questionCountdown');
 
-    if (currentCountdown) {
-      this.set('questionCountdown', (prev) => Math.max(0, prev - 1));
-      await this.broadcast(
-        GameEvent.QuestionLoop,
-        {
-          questionCountdown: this.get('questionCountdown'),
-        },
-        { includeStages: true },
-      );
+      if (currentCountdown) {
+        this.set('questionCountdown', (prev) => Math.max(0, prev - 1));
+        await this.broadcast(
+          GameEvent.QuestionLoop,
+          {
+            questionCountdown: this.get('questionCountdown'),
+          },
+          { includeStages: true },
+        );
 
-      this.setCurrentStageTimeout(this.questionLoop, SHORT_TICK);
-    } else {
-      this.set('questionStage', Stage.Finished);
-      this.finishQuestion();
+        this.setCurrentStageTimeout(this.questionLoop, SHORT_TICK);
+      } else {
+        this.set('questionStage', Stage.Finished);
+        this.finishQuestion();
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
   private async finishQuestion(): Promise<void> {
-    await this.broadcast(
-      GameEvent.FinishQuestion,
-      { players: PlayerState.serializePlayers(this.get('players')) },
-      { includeStages: true },
-    );
+    try {
+      await this.broadcast(
+        GameEvent.FinishQuestion,
+        { players: PlayerState.serializePlayers(this.get('players')) },
+        { includeStages: true },
+      );
 
-    this.setCurrentStageTimeout(this.startQuestion, LONG_TICK);
+      this.setCurrentStageTimeout(this.startQuestion, LONG_TICK);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   private async finish(): Promise<void> {
-    await this.broadcast(GameEvent.FinishGame, {}, { includeStages: true });
+    try {
+      const gameResultId = await this.generateResult();
 
-    this.set('currentStageTimeout', null);
+      await this.broadcast(
+        GameEvent.FinishGame,
+        { gameResultId },
+        {
+          includeStages: true,
+        },
+      );
+
+      this.set('currentStageTimeout', null);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  private async generateResult(): Promise<number> {
+    const gameResult = await prisma.gameResult.create({
+      data: { quizId: this.get('quiz').id },
+    });
+
+    const playersToCreate = Object.entries(this.get('players')).map(
+      ([id, { score }]) =>
+        prisma.player.create({
+          data: { userId: parseInt(id, 10), score, gameResultId: gameResult.id },
+        }),
+    );
+
+    const answersToCreate: PrismaPromise<Prisma.BatchPayload>[] = [];
+
+    for await (const { id, userId } of playersToCreate) {
+      const player = this.getPlayer(userId);
+      if (!player) continue;
+
+      const { questionAnswers } = player.getReadonlyState();
+      answersToCreate.push(
+        prisma.answerOnPlayer.createMany({
+          data: Object.values(questionAnswers)
+            .filter(Boolean)
+            .map((answer) => ({ answerId: answer!.answerId, playerId: id })),
+        }),
+      );
+    }
+
+    await Promise.all(answersToCreate);
+
+    return gameResult.id;
   }
 
   private async broadcast<T>(
@@ -316,26 +382,25 @@ export default class GameState extends State<IGameState> {
   }
 
   private async cleanupLoop(): Promise<void> {
-    const users = await this.fetchUsers();
+    try {
+      const users = await this.fetchUsers();
 
-    this.cleanupPlayers(users);
-    if (!users.length) {
-      setTimeout(this.cleanupGame.bind(this), CLEANUP_TIMEOUT);
+      this.cleanupPlayers(users);
+      if (!users.length) {
+        setTimeout(this.cleanupGame.bind(this), CLEANUP_TIMEOUT);
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
   private async fetchUsers(): Promise<PusherUser[]> {
-    try {
-      const response = await this.get('pusher').get({
-        path: `/channels/presence-${this.get('code')}/users`,
-      });
-      const { users } = await response.json();
+    const response = await this.get('pusher').get({
+      path: `/channels/presence-${this.get('code')}/users`,
+    });
+    const { users } = await response.json();
 
-      return users;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+    return users;
   }
 
   private setCurrentStageTimeout(cb: () => void, ms: number): void {

@@ -38,6 +38,37 @@ const gameRouter = createRouter()
       };
     },
   })
+  .query('get-result', {
+    input: z.object({
+      quizId: z.number(),
+      resultId: z.number(),
+    }),
+    resolve: async ({ ctx: { prisma }, input: { quizId, resultId } }) => {
+      const gameResult = await prisma.gameResult.findUnique({
+        where: { id: resultId },
+        include: {
+          players: {
+            orderBy: { score: 'desc' },
+            include: { user: { select: { id: true, username: true } } },
+          },
+        },
+      });
+      if (!gameResult) {
+        throw new trpc.TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Game result not found.',
+        });
+      }
+      if (gameResult.quizId !== quizId) {
+        throw new trpc.TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Quiz and result are not related.',
+        });
+      }
+
+      return gameResult;
+    },
+  })
   .mutation('create', {
     input: z.object({
       quizId: z.number(),

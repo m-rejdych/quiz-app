@@ -7,7 +7,6 @@ import { Heading, Progress, Box } from '@chakra-ui/react';
 import useGameSubscription from '../../../../hooks/useGameSubscription';
 import GameInitialView from '../../../../components/game/initialView';
 import GameStartingView from '../../../../components/game/startingView';
-import GameFinishedView from '../../../../components/game/finishedView';
 import QuestionStrtingView from '../../../../components/question/startingView';
 import QuestionCurrentView from '../../../../components/question/currentView';
 import QuestionFinishedView from '../../../../components/question/finishedView';
@@ -21,7 +20,7 @@ const Game: NextPage = () => {
   const {
     members,
     gameData: { data, error, isLoading },
-  } = useGameSubscription(code);
+  } = useGameSubscription(code, parseInt(query.id as string, 10));
   const { data: session } = useSession();
 
   if (isLoading)
@@ -119,9 +118,8 @@ const Game: NextPage = () => {
           />
         );
       case Stage.Started:
-        return renderQuestionContent();
       case Stage.Finished:
-        return <GameFinishedView players={players} />;
+        return renderQuestionContent();
       default:
         return null;
     }

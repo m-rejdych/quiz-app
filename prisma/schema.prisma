@@ -14,6 +14,7 @@ model User {
   username String
   profile Profile?
   quizes Quiz[]
+  players Player[]
 }
 
 model Profile {
@@ -39,6 +40,7 @@ model Quiz {
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   title String
   questions Question[]
+  results GameResult[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())
 }
@@ -59,6 +61,34 @@ model Answer {
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   content String
   isCorrect Boolean
+  players AnswerOnPlayer[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model GameResult {
+  id Int @id @default(autoincrement())
+  quizId Int
+  quiz Quiz @relation(fields: [quizId], references: [id])
+  players Player[]
+  createdAt DateTime @default(now())
+}
+
+model Player {
+  id Int @id @default(autoincrement())
+  userId Int
+  gameResultId Int
+  score Int
+  user User @relation(fields: [userId], references: [id])
+  gameResult GameResult @relation(fields: [gameResultId], references: [id], onDelete: Cascade)
+  answers AnswerOnPlayer[]
+}
+
+model AnswerOnPlayer {
+  playerId Int
+  answerId Int
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  answer Answer @relation(fields: [answerId], references: [id])
+
+  @@id([playerId, answerId])
 }
