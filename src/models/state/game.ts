@@ -21,7 +21,7 @@ type Quiz = Prisma.QuizGetPayload<{
 
 type Question = UnwrapArrayItem<InitGameState['quiz']['questions']>;
 
-interface SerializedQuestion extends Omit<Question, 'answers'> {
+interface FormattedQuestion extends Omit<Question, 'answers'> {
   answers: Omit<UnwrapArrayItem<Question['answers']>, 'isCorrect'>[];
 }
 
@@ -93,7 +93,7 @@ export default class GameState extends State<IGameState> {
     return this.get('quiz').questions[this.get('currentQuestionIndex')] ?? null;
   }
 
-  get serializedCurrentQuestion(): SerializedQuestion | null {
+  get formattedCurrentQuestion(): FormattedQuestion | null {
     const currentQuestion =
       this.get('quiz').questions[this.get('currentQuestionIndex')];
     if (!currentQuestion) return null;
@@ -119,7 +119,7 @@ export default class GameState extends State<IGameState> {
     this.set('players', (players) => ({ ...players, [id]: player }));
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: PlayerState.serializePlayers(this.get('players')),
+      players: PlayerState.formatPlayers(this.get('players')),
     });
 
     return player;
@@ -133,7 +133,7 @@ export default class GameState extends State<IGameState> {
     this.set('players', currentPlayers);
 
     await this.broadcast(ChannelEvent.UpdatePlayers, {
-      players: PlayerState.serializePlayers(currentPlayers),
+      players: PlayerState.formatPlayers(currentPlayers),
     });
 
     return true;
@@ -204,7 +204,7 @@ export default class GameState extends State<IGameState> {
         {
           questionStartCountdown: this.get('questionStartCountdown'),
           currentQuestionIndex: this.get('currentQuestionIndex'),
-          currentQuestion: this.serializedCurrentQuestion,
+          currentQuestion: this.formattedCurrentQuestion,
         },
         { includeStages: true },
       );
@@ -267,7 +267,7 @@ export default class GameState extends State<IGameState> {
     try {
       await this.broadcast(
         GameEvent.FinishQuestion,
-        { players: PlayerState.serializePlayers(this.get('players')) },
+        { players: PlayerState.formatPlayers(this.get('players')) },
         { includeStages: true },
       );
 
@@ -369,7 +369,7 @@ export default class GameState extends State<IGameState> {
       );
 
       await this.broadcast(ChannelEvent.UpdatePlayers, {
-        players: PlayerState.serializePlayers(updatedPlayers),
+        players: PlayerState.formatPlayers(updatedPlayers),
       });
     }
   }

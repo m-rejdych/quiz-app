@@ -9,7 +9,7 @@ import type { Session } from 'next-auth';
 import { unstable_getServerSession } from 'next-auth';
 
 import { authOptions } from '../pages/api/auth/[...nextauth]';
-import { replaceUndefined } from '../utils/serialize';
+import { replaceUndefined } from '../utils/format';
 
 interface SessionProps {
   session: Session;

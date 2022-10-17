@@ -15,7 +15,7 @@ export interface InitPlayerState {
 
 type IPlayerState = InitPlayerState;
 
-type SerializedPlayers = Record<
+type FormattedPlayers = Record<
   number,
   Readonly<InitPlayerState> & { score: number }
 >;
@@ -42,9 +42,9 @@ export default class PlayerState extends State<IPlayerState> {
       .reduce((total, answer) => total + calculateScore(answer!.timeLeft), 0);
   }
 
-  static serializePlayers(
+  static formatPlayers(
     players: Record<number, PlayerState>,
-  ): SerializedPlayers {
+  ): FormattedPlayers {
     return Object.entries(players).reduce(
       (acc, [id, player]) => ({
         ...acc,

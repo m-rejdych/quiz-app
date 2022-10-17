@@ -32,9 +32,9 @@ const gameRouter = createRouter()
 
       return {
         ...readonlyGameState,
-        players: PlayerState.serializePlayers(readonlyGameState.players),
+        players: PlayerState.formatPlayers(readonlyGameState.players),
         authorId,
-        currentQuestion: game.serializedCurrentQuestion,
+        currentQuestion: game.formattedCurrentQuestion,
       };
     },
   })
@@ -109,7 +109,7 @@ const gameRouter = createRouter()
           ],
         }),
         authorId: quiz.authorId,
-        currentQuestion: game.serializedCurrentQuestion,
+        currentQuestion: game.formattedCurrentQuestion,
       };
     },
   })
@@ -148,7 +148,7 @@ const gameRouter = createRouter()
           .quiz.questions.reduce((acc, { id }) => ({ ...acc, [id]: null }), {}),
       });
 
-      return PlayerState.serializePlayers(game.getReadonlyState().players);
+      return PlayerState.formatPlayers(game.getReadonlyState().players);
     },
   })
   .mutation('leave', {
@@ -163,7 +163,7 @@ const gameRouter = createRouter()
       }
       await game.removePlayer(userId);
 
-      return PlayerState.serializePlayers(game.getReadonlyState().players);
+      return PlayerState.formatPlayers(game.getReadonlyState().players);
     },
   })
   .mutation('start', {
