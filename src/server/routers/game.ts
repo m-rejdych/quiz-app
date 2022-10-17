@@ -64,7 +64,10 @@ const gameRouter = createRouter()
     input: z.object({
       quizId: z.number(),
     }),
-    resolve: async ({ ctx: { prisma, state, userId }, input: { quizId } }) => {
+    resolve: async ({
+      ctx: { prisma, pusher, state, userId },
+      input: { quizId },
+    }) => {
       const quiz = await prisma.quiz.findUnique({
         where: { id: quizId },
         include: {
