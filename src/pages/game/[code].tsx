@@ -4,15 +4,15 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { Heading, Progress, Box } from '@chakra-ui/react';
 
-import useGameSubscription from '../../../../hooks/useGameSubscription';
-import GameInitialView from '../../../../components/game/initialView';
-import GameStartingView from '../../../../components/game/startingView';
-import QuestionStrtingView from '../../../../components/question/startingView';
-import QuestionCurrentView from '../../../../components/question/currentView';
-import QuestionFinishedView from '../../../../components/question/finishedView';
-import { getPropsWithSession } from '../../../../utils/session';
-import { Stage } from '../../../../types/game/events';
-import type { MatchedMembers } from '../../../../types/game/members';
+import useGameSubscription from '../../hooks/useGameSubscription';
+import GameInitialView from '../../components/game/initialView';
+import GameStartingView from '../../components/game/startingView';
+import QuestionStartingView from '../../components/question/startingView';
+import QuestionCurrentView from '../../components/question/currentView';
+import QuestionFinishedView from '../../components/question/finishedView';
+import { getPropsWithSession } from '../../utils/session';
+import { Stage } from '../../types/game/events';
+import type { MatchedMembers } from '../../types/game/members';
 
 const Game: NextPage = () => {
   const { query } = useRouter();
@@ -20,7 +20,7 @@ const Game: NextPage = () => {
   const {
     members,
     gameData: { data, error, isLoading },
-  } = useGameSubscription(code, parseInt(query.id as string, 10));
+  } = useGameSubscription(code);
   const { data: session } = useSession();
 
   if (isLoading)
@@ -68,7 +68,7 @@ const Game: NextPage = () => {
     switch (questionStage) {
       case Stage.Starting:
         return (
-          <QuestionStrtingView
+          <QuestionStartingView
             countdown={questionStartCountdown}
             title={currentQuestion.title}
           />

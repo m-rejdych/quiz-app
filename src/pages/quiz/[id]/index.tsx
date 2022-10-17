@@ -152,7 +152,7 @@ const Quiz: NextPage = () => {
       const { code } = await createGame.mutateAsync({
         quizId: parseInt(id as string, 10),
       });
-      await router.push(`/quiz/${id}/game/${code}`);
+      await router.push(`/game/${code}`);
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
     }

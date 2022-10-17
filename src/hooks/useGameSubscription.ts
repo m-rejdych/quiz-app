@@ -24,7 +24,7 @@ const EVENTS = [
   GameEvent.FinishQuestion,
 ] as const;
 
-const useGameSubscription = (code: string, quizId: number) => {
+const useGameSubscription = (code: string) => {
   const router = useRouter();
   const [members, setMembers] = useState<Members>({});
   const { invalidateQueries, setQueryData } = trpc.useContext();
@@ -92,7 +92,7 @@ const useGameSubscription = (code: string, quizId: number) => {
     channel.bind(GameEvent.FinishGame, async (data: FinishGameData) => {
       const { gameResultId, ...rest } = data;
       handleEvent(rest);
-      await router.push(`/quiz/${quizId}/result/${gameResultId}`);
+      await router.push(`/result/${gameResultId}`);
     });
 
     return () => {
@@ -100,8 +100,6 @@ const useGameSubscription = (code: string, quizId: number) => {
       channel.unsubscribe();
       pusher.unbind_all();
       pusher.disconnect();
-
-      // leave game on cleanup?
     };
   }, []);
 

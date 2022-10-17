@@ -39,13 +39,10 @@ const gameRouter = createRouter()
     },
   })
   .query('get-result', {
-    input: z.object({
-      quizId: z.number(),
-      resultId: z.number(),
-    }),
-    resolve: async ({ ctx: { prisma }, input: { quizId, resultId } }) => {
+    input: z.number(),
+    resolve: async ({ ctx: { prisma }, input }) => {
       const gameResult = await prisma.gameResult.findUnique({
-        where: { id: resultId },
+        where: { id: input },
         include: {
           players: {
             orderBy: { score: 'desc' },
@@ -57,12 +54,6 @@ const gameRouter = createRouter()
         throw new trpc.TRPCError({
           code: 'NOT_FOUND',
           message: 'Game result not found.',
-        });
-      }
-      if (gameResult.quizId !== quizId) {
-        throw new trpc.TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Quiz and result are not related.',
         });
       }
 

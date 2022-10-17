@@ -2,21 +2,15 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { Heading, Progress, Flex } from '@chakra-ui/react';
 
-import { trpc } from '../../../../utils/trpc';
-import useAuthError from '../../../../hooks/useAuthError';
-import Leaderboard from '../../../../components/common/leaderboard';
+import { trpc } from '../../utils/trpc';
+import useAuthError from '../../hooks/useAuthError';
+import Leaderboard from '../../components/common/leaderboard';
 
 const Result: NextPage = () => {
   const { query } = useRouter();
   const onError = useAuthError();
   const { data, error, isLoading } = trpc.useQuery(
-    [
-      'game.get-result',
-      {
-        quizId: parseInt(query.id as string, 10),
-        resultId: parseInt(query.resultId as string, 10),
-      },
-    ],
+    ['game.get-result', parseInt(query.resultId as string, 10)],
     { onError },
   );
 
