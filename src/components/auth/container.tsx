@@ -35,7 +35,7 @@ const AuthContainer: FC<Props> = ({
       case AuthMode.Login:
         return (
           <Text mt={6} textAlign="center">
-            Don't have an account?{' '}
+            Don&#39;t have an account?{' '}
             <Text
               as="span"
               color="secondary.light"

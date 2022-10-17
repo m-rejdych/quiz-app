@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import { type SubmitHandler, type Path, useForm } from 'react-hook-form';
 import { VStack, Button } from '@chakra-ui/react';
 
@@ -10,6 +11,7 @@ interface Props<T extends object> {
 }
 
 const AuthForm = <T extends object>({ fields, onSubmit }: Props<T>) => {
+  const { pathname } = useRouter();
   const {
     register,
     handleSubmit,
@@ -33,7 +35,7 @@ const AuthForm = <T extends object>({ fields, onSubmit }: Props<T>) => {
           />
         ))}
         <Button type="submit" isLoading={isSubmitting} colorScheme="teal">
-          Login
+          {pathname.includes('register') ? 'Register' : 'Login'}
         </Button>
       </VStack>
     </form>
