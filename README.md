@@ -1,6 +1,6 @@
 # Quiz App
 
-An app for creating and playing quizes.
+Next.js app for creating and playing websocket based quiz games.
 
 ## Tech Stack
 
