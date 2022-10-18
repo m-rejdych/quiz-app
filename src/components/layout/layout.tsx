@@ -1,6 +1,7 @@
 import type { FC, ReactElement } from 'react';
-import { Container } from '@chakra-ui/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { Container } from '@chakra-ui/react';
 
 import TopBar from './topBar';
 
@@ -9,6 +10,7 @@ interface Props {
 }
 
 const Layout: FC<Props> = ({ children }) => {
+  const { data: session } = useSession();
   const { pathname } = useRouter();
 
   const isAuthPage = pathname.includes('/auth');
@@ -21,7 +23,7 @@ const Layout: FC<Props> = ({ children }) => {
       mt={isAuthPage ? 0 : 16}
     >
       {isAuthPage || <TopBar />}
-      {children}
+      {(!isAuthPage && !session) || children}
     </Container>
   );
 };

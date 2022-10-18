@@ -1,7 +1,16 @@
 import type { FC } from 'react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { Flex, HStack, Text, Avatar } from '@chakra-ui/react';
+import { useSession, signOut } from 'next-auth/react';
+import {
+  Flex,
+  HStack,
+  Text,
+  Avatar,
+  IconButton,
+  Icon,
+  Tooltip,
+} from '@chakra-ui/react';
+import { MdLogout } from 'react-icons/md';
 
 const TopBar: FC = () => {
   const { data } = useSession();
@@ -22,14 +31,31 @@ const TopBar: FC = () => {
       justifyContent="space-between"
     >
       <Link href="/">
-        <Text cursor="pointer" color="primary.light" fontWeight={700} fontSize="xl">Quiz app</Text>
+        <Text
+          cursor="pointer"
+          color="primary.light"
+          fontWeight={700}
+          fontSize="xl"
+        >
+          Quiz app
+        </Text>
       </Link>
-      <Link href="/profile">
-        <HStack spacing={4} cursor="pointer">
-          <Text fontWeight={700}>{data.user?.name}</Text>
-          <Avatar size="sm" />
-        </HStack>
-      </Link>
+      <Flex>
+        <Link href="/profile">
+          <HStack spacing={4} cursor="pointer">
+            <Text fontWeight={700}>{data.user?.name}</Text>
+            <Avatar size="sm" />
+          </HStack>
+        </Link>
+        <Tooltip label="Logout">
+          <IconButton
+            ml={4}
+            aria-label="logout"
+            icon={<Icon as={MdLogout} />}
+            onClick={() => signOut()}
+          />
+        </Tooltip>
+      </Flex>
     </Flex>
   );
 };
