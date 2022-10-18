@@ -54,7 +54,8 @@ const Quiz: NextPage = () => {
 
   const canStart =
     !!data?.questions.length &&
-    data.questions.some(({ answers }) => answers.length >= 2);
+    data.questions.some(({ answers }) => answers.length >= 2) &&
+    !deleteQuiz.isLoading;
 
   const handleDeleteQuestion = async ({
     id,
@@ -188,6 +189,7 @@ const Quiz: NextPage = () => {
             aria-label="delete-quiz"
             icon={<DeleteIcon />}
             onClick={handleDeleteQuiz}
+            isLoading={deleteQuiz.isLoading}
           />
           <Button
             isDisabled={!canStart}
