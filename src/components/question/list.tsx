@@ -18,6 +18,8 @@ interface Props {
   onDeleteAnswer?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onEditAnswerContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onCorrectAnswerSelect?: (data: UpdateAnswerPayload) => void | Promise<void>;
+  isQuestionLoading?: boolean;
+  isAnswerLoading?: boolean;
   listProps?: ListProps;
 }
 

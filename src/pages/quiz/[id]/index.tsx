@@ -193,9 +193,9 @@ const Quiz: NextPage = () => {
           />
           <Button
             isDisabled={!canStart}
-            isLoading={createGame.isLoading}
             colorScheme="teal"
             onClick={handleStartGame}
+            isLoading={createGame.isLoading}
           >
             Start quiz
           </Button>
@@ -204,7 +204,10 @@ const Quiz: NextPage = () => {
       <Divider />
       <Flex alignItems="center" justifyContent="space-between">
         <Text fontSize="xl">Questions</Text>
-        <AddQuestionButton onAdd={handleAddQuestion} />
+        <AddQuestionButton
+          onAdd={handleAddQuestion}
+          isLoading={addQuestion.isLoading}
+        />
       </Flex>
       <QuestionsList
         questions={data.questions}
@@ -214,6 +217,8 @@ const Quiz: NextPage = () => {
         onDeleteAnswer={handleDeleteAnswer}
         onEditAnswerContent={handleEditAnswerContent}
         onCorrectAnswerSelect={handleCorrectAnswerSelect}
+        isQuestionLoading={deleteQuestion.isLoading}
+        isAnswerLoading={deleteAnswer.isLoading}
       />
     </VStack>
   ) : null;

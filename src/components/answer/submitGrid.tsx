@@ -62,6 +62,7 @@ const SubmitGrid: FC<Props> = ({
             colorScheme="gray"
             cursor={isPlayer ? 'pointer' : 'default'}
             onClick={() => handleSubmit(id)}
+            isLoading={submitAnswer.isLoading}
           >
             {content}
           </Button>

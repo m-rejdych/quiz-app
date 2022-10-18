@@ -30,6 +30,8 @@ interface Props {
   onDeleteAnswer?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onEditAnswerContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onCorrectAnswerSelect?: (data: UpdateAnswerPayload) => void | Promise<void>;
+  isQuestionLoading?: boolean;
+  isAnswerLoading?: boolean;
 }
 
 const QuestionsListItem: FC<Props> = ({
@@ -40,6 +42,8 @@ const QuestionsListItem: FC<Props> = ({
   onDeleteAnswer,
   onEditAnswerContent,
   onCorrectAnswerSelect,
+  isQuestionLoading,
+  isAnswerLoading,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isListIn, setIsListIn] = useState(false);
@@ -100,6 +104,7 @@ const QuestionsListItem: FC<Props> = ({
                   aria-label="delete-question"
                   icon={<DeleteIcon />}
                   onClick={() => setIsDeleting(true)}
+                  isLoading={isQuestionLoading}
                 />
               )}
               {onEditTitle ? (
@@ -130,6 +135,7 @@ const QuestionsListItem: FC<Props> = ({
               onDelete={onDeleteAnswer}
               onEditContent={onEditAnswerContent}
               onCorrectSelect={handleCorrectAnswerSelect}
+              isLoading={isAnswerLoading}
             />
           </Collapse>
           {onAddAnswer && id && (

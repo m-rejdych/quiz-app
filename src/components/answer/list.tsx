@@ -14,6 +14,7 @@ interface Props {
   onEditContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   listProps?: ListProps;
   withIsCorrectLabel?: boolean;
+  isLoading?: boolean;
 }
 
 const AnswersList: FC<Props> = ({ answers, listProps, ...rest }) => (

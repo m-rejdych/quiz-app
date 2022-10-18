@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import type { Quiz } from '@prisma/client';
-import { VStack, Text } from '@chakra-ui/react';
+import { VStack } from '@chakra-ui/react';
 
 import QuizesListItem from './listItem';
 

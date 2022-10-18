@@ -33,9 +33,10 @@ interface Question {
 
 interface Props {
   onAdd: (question: Question) => boolean | Promise<boolean>;
+  isLoading?: boolean;
 }
 
-const AddQuestionButton: FC<Props> = ({ onAdd }) => {
+const AddQuestionButton: FC<Props> = ({ onAdd, isLoading }) => {
   const [title, setTitle] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [alreadyExists, setAlreadyExists] = useState(false);
@@ -171,7 +172,11 @@ const AddQuestionButton: FC<Props> = ({ onAdd }) => {
           </VStack>
         </PopoverBody>
         <PopoverFooter>
-          <Button colorScheme="teal" onClick={handleSubmit}>
+          <Button
+            colorScheme="teal"
+            onClick={handleSubmit}
+            isLoading={isLoading}
+          >
             Add
           </Button>
         </PopoverFooter>

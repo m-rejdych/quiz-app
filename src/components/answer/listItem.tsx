@@ -21,6 +21,7 @@ interface Props {
   onDelete?: (data: UpdateAnswerPayload) => void | Promise<void>;
   onEditContent?: (data: UpdateAnswerPayload) => void | Promise<void>;
   withIsCorrectLabel?: boolean;
+  isLoading?: boolean;
 }
 
 const AnswersListItem: FC<Props> = ({
@@ -29,6 +30,7 @@ const AnswersListItem: FC<Props> = ({
   onDelete,
   onEditContent,
   withIsCorrectLabel,
+  isLoading,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -66,6 +68,7 @@ const AnswersListItem: FC<Props> = ({
               icon={<DeleteIcon />}
               aria-label="delete-answer"
               onClick={() => setIsDeleting(true)}
+              isLoading={isLoading}
             />
           )}
           {onEditContent ? (
