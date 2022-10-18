@@ -1,7 +1,8 @@
 import type { FC, ReactElement } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { Container } from '@chakra-ui/react';
+import { Container, Icon, Link, Tooltip } from '@chakra-ui/react';
+import { ImGithub } from 'react-icons/im';
 
 import TopBar from './topBar';
 
@@ -24,6 +25,18 @@ const Layout: FC<Props> = ({ children }) => {
     >
       {isAuthPage || <TopBar />}
       {(!isAuthPage && !session) || children}
+      <Tooltip label="GitHub">
+        <Link
+          position="fixed"
+          bottom={6}
+          right={6}
+          target="_blank"
+          href="https://github.com/m-rejdych/quiz-app"
+          color="gray.500"
+        >
+          <Icon aria-label="github-link" as={ImGithub} />
+        </Link>
+      </Tooltip>
     </Container>
   );
 };
