@@ -48,11 +48,7 @@ const Result: NextPage = () => {
   };
 
   return (
-    <Flex
-      height="calc(100vh - 128px)"
-      alignItems="center"
-      justifyContent="center"
-    >
+    <Flex height="100%" alignItems="center" justifyContent="center">
       <Leaderboard
         players={players}
         heading={getHeading()}

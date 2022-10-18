@@ -2,7 +2,7 @@ import type { NextPage } from 'next';
 import type { Session } from 'next-auth';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import { Heading, Progress, Box } from '@chakra-ui/react';
+import { Heading, Progress, Box, Center } from '@chakra-ui/react';
 
 import useGameSubscription from '../../hooks/useGameSubscription';
 import GameInitialView from '../../components/game/initialView';
@@ -24,13 +24,19 @@ const Game: NextPage = () => {
   const { data: session } = useSession();
 
   if (isLoading)
-    return <Progress size="sm" colorScheme="teal" mx={8} isIndeterminate />;
+    return (
+      <Center height="100%" width="100%">
+        <Progress size="sm" colorScheme="teal" mx={8} width="100%" isIndeterminate />
+      </Center>
+    );
 
   if (error)
     return (
-      <Heading textAlign="center">
-        {error.data?.httpStatus === 404 ? 'Game not found.' : error.message}
-      </Heading>
+      <Center height="100%" width="100%">
+        <Heading textAlign="center" color="gray.500">
+          {error.data?.httpStatus === 404 ? 'Game not found.' : error.message}
+        </Heading>
+      </Center>
     );
 
   if (!data || !session?.user) return null;
@@ -125,7 +131,7 @@ const Game: NextPage = () => {
     }
   };
 
-  return <Box height="calc(100vh - 128px)">{renderMainContent()}</Box>;
+  return <Box height="100%">{renderMainContent()}</Box>;
 };
 
 export const getServerSideProps = getPropsWithSession();

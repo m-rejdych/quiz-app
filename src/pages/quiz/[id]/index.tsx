@@ -1,6 +1,15 @@
-import { VStack, Flex, Text, Divider, Button } from '@chakra-ui/react';
-import { useRouter } from 'next/router';
 import type { NextPage } from 'next';
+import { useRouter } from 'next/router';
+import {
+  VStack,
+  Flex,
+  Text,
+  Divider,
+  Button,
+  IconButton,
+  HStack,
+} from '@chakra-ui/react';
+import { DeleteIcon } from '@chakra-ui/icons';
 
 import QuestionsList from '../../../components/question/list';
 import AddQuestionButton from '../../../components/question/addButton';
@@ -15,8 +24,8 @@ import type { UpdateAnswerPayload } from '../../../types/answer/list';
 
 const Quiz: NextPage = () => {
   const { invalidateQueries } = trpc.useContext();
-  const { query } = useRouter();
-  const quizId = parseInt(query.id as string, 10);
+  const router = useRouter();
+  const quizId = parseInt(router.query.id as string, 10);
   const invalidateQuizQueries = (): void => {
     invalidateQueries(['quiz.get-by-id', quizId]);
   };
@@ -40,8 +49,8 @@ const Quiz: NextPage = () => {
   const updateAnswer = trpc.useMutation('answer.update', {
     onSuccess: invalidateQuizQueries,
   });
+  const deleteQuiz = trpc.useMutation('quiz.delete');
   const createGame = trpc.useMutation('game.create');
-  const router = useRouter();
 
   const canStart =
     !!data?.questions.length &&
@@ -146,13 +155,21 @@ const Quiz: NextPage = () => {
 
   const handleStartGame = async (): Promise<void> => {
     if (!canStart) return;
-    const { id } = router.query;
 
     try {
       const { code } = await createGame.mutateAsync({
-        quizId: parseInt(id as string, 10),
+        quizId,
       });
       await router.push(`/game/${code}`);
+    } catch (error) {
+      onError(error as Parameters<typeof onError>[0]);
+    }
+  };
+
+  const handleDeleteQuiz = async (): Promise<void> => {
+    try {
+      await deleteQuiz.mutateAsync(quizId);
+      await router.push('/');
     } catch (error) {
       onError(error as Parameters<typeof onError>[0]);
     }
@@ -164,14 +181,23 @@ const Quiz: NextPage = () => {
         <Text fontSize="2xl" fontWeight="bold">
           {data.title}
         </Text>
-        <Button
-          isDisabled={!canStart}
-          isLoading={createGame.isLoading}
-          colorScheme="teal"
-          onClick={handleStartGame}
-        >
-          Start quiz
-        </Button>
+        <HStack spacing={3}>
+          <IconButton
+            colorScheme="red"
+            variant="outline"
+            aria-label="delete-quiz"
+            icon={<DeleteIcon />}
+            onClick={handleDeleteQuiz}
+          />
+          <Button
+            isDisabled={!canStart}
+            isLoading={createGame.isLoading}
+            colorScheme="teal"
+            onClick={handleStartGame}
+          >
+            Start quiz
+          </Button>
+        </HStack>
       </Flex>
       <Divider />
       <Flex alignItems="center" justifyContent="space-between">

@@ -22,6 +22,7 @@ const Layout: FC<Props> = ({ children }) => {
       py={8}
       position="relative"
       mt={isAuthPage ? 0 : 16}
+      height={`calc(100vh - ${isAuthPage ? '128px' : '64px'})`}
     >
       {isAuthPage || <TopBar />}
       {(!isAuthPage && !session) || children}

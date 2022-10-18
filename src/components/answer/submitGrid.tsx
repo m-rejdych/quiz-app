@@ -43,7 +43,7 @@ const SubmitGrid: FC<Props> = ({
 
   return isAnswered ? (
     <Flex alignItems="center" justifyContent="center" height="100%">
-      <Text fontSize="2xl" fontWeight="bold">
+      <Text fontSize="2xl" fontWeight="bold" color="gray.500">
         Your answer has been submitted!
       </Text>
     </Flex>

@@ -82,7 +82,7 @@ const Leaderboard: FC<Props> = ({
         </Table>
       </TableContainer>
       {heading && (
-        <Text fontSize="2xl" alignSelf="center" mt={6}>
+        <Text fontSize="2xl" alignSelf="center" color="gray.500" mt={6}>
           Leaderboard
         </Text>
       )}

@@ -60,6 +60,25 @@ const quizRouter = createRouter()
       return quiz;
     },
   })
+  .mutation('delete', {
+    input: z.number(),
+    resolve: async ({ ctx: { userId, prisma }, input }) => {
+      const quiz = await prisma.quiz.findUnique({ where: { id: input } });
+      if (!quiz) {
+        throw new trpc.TRPCError({ code: 'NOT_FOUND' });
+      }
+      if (quiz.authorId !== userId) {
+        throw new trpc.TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can remove only quizes, which you are author of.',
+        });
+      }
+
+      await prisma.quiz.delete({ where: { id: quiz.id } });
+
+      return true;
+    },
+  })
   .query('list', {
     resolve: async ({ ctx: { prisma, userId } }) => {
       const quizes = await prisma.quiz.findMany({

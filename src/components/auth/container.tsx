@@ -64,7 +64,7 @@ const AuthContainer: FC<Props> = ({
   };
 
   return (
-    <Center height="calc(100vh - 64px)">
+    <Center height="100%">
       <Box
         bgColor="blackAlpha.400"
         borderRadius="md"
