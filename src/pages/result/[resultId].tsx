@@ -1,6 +1,6 @@
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { Heading, Progress, Flex } from '@chakra-ui/react';
+import { Heading, Progress, Flex, Center } from '@chakra-ui/react';
 
 import { trpc } from '../../utils/trpc';
 import useAuthError from '../../hooks/useAuthError';
@@ -19,7 +19,17 @@ const Result: NextPage = () => {
   }
 
   if (isLoading) {
-    return <Progress size="sm" colorScheme="teal" mx={8} isIndeterminate />;
+    return (
+      <Center height="100%" width="100%">
+        <Progress
+          size="sm"
+          colorScheme="teal"
+          mx={8}
+          width="100%"
+          isIndeterminate
+        />
+      </Center>
+    );
   }
 
   if (!data) return null;

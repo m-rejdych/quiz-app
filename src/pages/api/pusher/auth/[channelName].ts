@@ -10,6 +10,7 @@ const handler: NextApiHandler = async (req, res) => {
     if (!session?.user) {
       throw new trpc.TRPCError({ code: 'UNAUTHORIZED' });
     }
+    console.log(session);
 
     const socketId = req.body.socket_id;
     const { id, ...rest } = session.user;
